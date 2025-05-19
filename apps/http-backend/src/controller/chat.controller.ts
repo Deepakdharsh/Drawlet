@@ -1,0 +1,98 @@
+import { Request, Response } from "express"
+import { CreateRoomSchema } from "@repo/common/types"
+import { prismaClient } from "@repo/prisma/client"
+
+
+const joinRoom=async(req:Request,res:Response)=>{
+    try {
+        //@ts-ignore
+        const userId=req.userId
+        const {data,error}=CreateRoomSchema.safeParse(req.body)
+    
+        if(error) return res.status(409).json({message:'invaild inputs'})
+        
+        const isRoomExist=await prismaClient.room.findFirst({where:{slug:data.name}})
+    
+        if(isRoomExist){
+            return res.status(409).json({
+                message:"room already exists"
+            })
+        }
+    
+        const room=await prismaClient.room.create({
+            data:{
+            slug:data.name,
+            adminId:userId
+        }})
+    
+        if(!room) return res.status(409).json({message:"something went wrong"})
+    
+        
+        res.json({
+            message:"room created",
+            room
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message:"something went wrong"
+        })
+    }
+}
+
+const chat=async(req:Request,res:Response)=>{
+    try {
+        //@ts-ignore
+        const userId=req.userId
+        const roomId=Number(req.params.roomId)
+    
+        const chats=await prismaClient.chat.findMany({
+            where:{
+                roomId
+            },
+            orderBy:{
+                id:'desc'
+            },
+            take:50
+        })
+    
+        if(!chats) return res.status(409).json({message:"something went wrong"})
+    
+        
+        res.json({
+            message:"room created",
+            chats
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message:"something went wrong"
+        })
+    }
+}
+
+const getRoomId=async(req:Request,res:Response)=>{
+    try {
+        //@ts-ignore
+        const roomId=Number(req.params.slug)
+    
+        const chats=await prismaClient.room.findFirst({
+            where:{id:roomId}
+        })
+    
+        if(!chats) return res.status(409).json({message:"something went wrong"})
+    
+        
+        res.json({
+            message:"room created",
+            chats
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message:"something went wrong"
+        })
+    }
+}
+
+export {joinRoom,chat,getRoomId}
