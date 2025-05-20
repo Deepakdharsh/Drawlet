@@ -15,12 +15,14 @@ const users: User[] = [];
 
 wss.on("connection", (ws: WebSocket, request) => {
   const url = request.url;
+  console.log(url)
   if (!url) return;
   const queryparams = new URLSearchParams(url.split("?")[1]);
   const token = queryparams.get("token") || "";
   const decoded = jwt.verify(token,JWT_SECRET);
   //@ts-ignore
   const userId = decoded.id;
+  console.log(userId)
 
   // if(!decoded||!(decoded as JwtPayload).userId){
   if (!decoded || !userId) {

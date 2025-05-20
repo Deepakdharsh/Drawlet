@@ -14,7 +14,8 @@ const signin=async(req:Request,res:Response)=>{
             return res.status(411).json({message:"invaild inputs"})
         }
     
-        const user=await prismaClient.user.findFirst({where:{email:data.username}})
+        const user=await prismaClient.user.findFirst({where:{email:data.email}})
+
     
         if(!user){
             return res.status(401).json({ 
@@ -23,8 +24,9 @@ const signin=async(req:Request,res:Response)=>{
         }
     
         const isMatch=await bcrypt.compare(data.password,user.password)
+
     
-        if(isMatch){
+        if(!isMatch){
             return res.status(403).json({
                 message:"invaild credentails"
             })

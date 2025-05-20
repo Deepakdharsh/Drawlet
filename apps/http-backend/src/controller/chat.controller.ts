@@ -3,7 +3,7 @@ import { CreateRoomSchema } from "@repo/common/types"
 import { prismaClient } from "@repo/prisma/client"
 
 
-const joinRoom=async(req:Request,res:Response)=>{
+const createRoom=async(req:Request,res:Response)=>{
     try {
         //@ts-ignore
         const userId=req.userId
@@ -53,7 +53,7 @@ const chat=async(req:Request,res:Response)=>{
             orderBy:{
                 id:'desc'
             },
-            take:50
+            // take:50
         })
     
         if(!chats) return res.status(409).json({message:"something went wrong"})
@@ -74,18 +74,20 @@ const chat=async(req:Request,res:Response)=>{
 const getRoomId=async(req:Request,res:Response)=>{
     try {
         //@ts-ignore
-        const roomId=Number(req.params.slug)
+        const roomId=req.params.slug
     
-        const chats=await prismaClient.room.findFirst({
-            where:{id:roomId}
+        const room=await prismaClient.room.findFirst({
+            where:{slug:roomId}
         })
+
+        console.log(room)
     
-        if(!chats) return res.status(409).json({message:"something went wrong"})
+        if(!room) return res.status(409).json({message:"something went wrong"})
     
         
         res.json({
             message:"room created",
-            chats
+            id:room.id
         })
     } catch (error) {
         console.log(error)
@@ -95,4 +97,4 @@ const getRoomId=async(req:Request,res:Response)=>{
     }
 }
 
-export {joinRoom,chat,getRoomId}
+export {createRoom,chat,getRoomId}
