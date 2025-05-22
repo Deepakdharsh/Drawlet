@@ -35,10 +35,18 @@ const signin=async(req:Request,res:Response)=>{
         const token=generateAccessToken(user)
         const refreshToken=generateRefreshToken(user)
     
+        res.cookie("token",token,{
+            httpOnly:true,
+            secure:process.env.NODE_ENV == "production" ? true : false,
+            sameSite:"strict",
+            maxAge:15*60*1000
+        })
+
         res.cookie("refreshToken",refreshToken,{
             httpOnly:true,
             secure:process.env.NODE_ENV == "production" ? true : false,
-            sameSite:"strict"
+            sameSite:"strict",
+            maxAge:7*24*60*60*1000
         })
     
         res.status(201).json({
@@ -90,10 +98,18 @@ const signup=async(req:Request,res:Response)=>{
         const token=generateAccessToken(newUser)
         const refreshToken=generateRefreshToken(newUser)
     
+        res.cookie("token",token,{
+            httpOnly:true,
+            secure:process.env.NODE_ENV == "production" ? true : false,
+            sameSite:"strict",
+            maxAge:15*60*1000
+        })
+
         res.cookie("refreshToken",refreshToken,{
             httpOnly:true,
             secure:process.env.NODE_ENV == "production" ? true : false,
-            sameSite:"strict"
+            sameSite:"strict",
+            maxAge:7*24*60*60*1000
         })
     
         res.status(201).json({
@@ -107,4 +123,12 @@ const signup=async(req:Request,res:Response)=>{
         })
     }
 }
-export {signin,signup}
+
+const logout=async (req:Request, res:Response) => {
+  res
+    .clearCookie('token')
+    .clearCookie('refreshToken')
+    .json({ message: 'Logout successful' });
+}
+
+export {signin,signup,logout}

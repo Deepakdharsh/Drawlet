@@ -6,25 +6,55 @@ import { JWT_SECRET } from "@repo/backend-common/config"
 
 export const auth=async(req:Request,res:Response,next:NextFunction)=>{
     try {
-        const token=req.headers.token 
-    
-        if(!token) return res.status(400).json({message:"invaild token"})
-        //@ts-ignore
-        const decoded = await jwt.verify(token,JWT_SECRET)
-        const isAuthorized=await prismaClient.user.findFirst({where:{id:decoded.id}})
-        if(!isAuthorized){
+        const token=req.cookies.token 
+        const refreshToken=req.cookies.refreshToken 
+        
+        if(!token&&!refreshToken){
             return res.status(401).json({
-                message:"invaild token format"
+                message:'session expired'
             })
-        }else{
-            //@ts-ignore
-            req.userId=decoded.id
-            next()
         }
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            message:'something went wrong'
-        })
+        
+        const decoded = await jwt.verify(token,JWT_SECRET)
+        //@ts-ignore
+        req.userId=decoded.id
+        next()
+        
+        // if(!token) return res.status(400).json({message:"invaild token"})
+        
+        // if(token&&decoded){
+            //     return next()
+            // }
+            // //@ts-ignore
+            // const isAuthorized=await prismaClient.user.findFirst({where:{id:decoded.id}})
+            // if(!isAuthorized){
+                //     return res.status(401).json({
+                    //         message:"invaild token format"
+                    //     })
+                    // }else{
+                        
+                    // }
+        } catch (error) {
+            try {
+            const refreshToken=req.cookies.refreshToken 
+            const decodedRefreshToken=await jwt.verify(refreshToken,JWT_SECRET)
+            //@ts-ignore
+            const newToken=jwt.sign({id:decodedRefreshToken.id})
+
+            res.cookie("token",newToken,{
+                httpOnly:true,
+                secure:process.env.NODE_ENV == "production" ? true : false,
+                sameSite:"strict",
+                maxAge:15*60*1000
+            })
+            //@ts-ignore
+            req.userId=decodedRefreshToken.id
+            next()
+        } catch (error) {
+             console.log(error)
+            res.status(500).json({
+                message:'something went wrong'
+            })
+       }
     }
 }

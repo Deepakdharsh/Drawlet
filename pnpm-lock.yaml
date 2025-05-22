@@ -63,12 +63,18 @@ importers:
 
   apps/http-backend:
     dependencies:
+      '@types/cors':
+        specifier: ^2.8.18
+        version: 2.8.18
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -794,6 +800,9 @@ packages:
     resolution: {integrity: sha512-l37JqFrOJ9yQfRQkljb41l0xVphc7kg5JTjjr+pLRZ0IyZ49V4BQ8vbF4Ut2C2e+WH4al3xD3ZwYwIUfnbT4NQ==}
     peerDependencies:
       '@types/express': '*'
+
+  '@types/cors@2.8.18':
+    resolution: {integrity: sha512-nX3d0sxJW41CqQvfOzVG1NCTXfFDrDWIghCZncpHeWlVFd81zxB/DLhg7avFg6eHLCRX7ckBmoIIcqa++upvJA==}
 
   '@types/estree@1.0.7':
     resolution: {integrity: sha512-w28IoSUCJpidD/TGviZwwMJckNESJZXFu7NBZ5YJ4mEUnNraUn9Pm8HSZm/jDF1pDWYKspWE7oVphigUPRakIQ==}
@@ -3629,6 +3638,10 @@ snapshots:
   '@types/cookie-parser@1.4.8(@types/express@5.0.1)':
     dependencies:
       '@types/express': 5.0.1
+
+  '@types/cors@2.8.18':
+    dependencies:
+      '@types/node': 22.15.3
 
   '@types/estree@1.0.7': {}
 
