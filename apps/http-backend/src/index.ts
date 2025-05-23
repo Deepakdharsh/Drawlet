@@ -9,7 +9,7 @@ const app=express()
 
 
 app.use(cors({
-    origin:["http://localhost:3002"],
+    origin:["http://localhost:3001"],
     credentials:true
 }))
 app.use(express.json())
@@ -19,6 +19,6 @@ app.use("/api/v1/auth",authRouter)
 app.use("/api/v1/chat",chatRouter)
 
 
-app.listen(3001,()=>{
+app.listen(3005,()=>{
     console.log("server has started on port 3001")
 })

@@ -3,7 +3,7 @@ import {JWT_SECRET} from "@repo/backend-common/config"
 
 //@ts-ignore
 export const generateAccessToken=(user)=>{
-    const token=jwt.sign({id:user.id},JWT_SECRET,{expiresIn:"15m"})
+    const token=jwt.sign({id:user.id},JWT_SECRET,{expiresIn:"7d"})
     return token
 }
 
