@@ -48,7 +48,7 @@ const chat=async(req:Request,res:Response)=>{
     
         const chats=await prismaClient.chat.findMany({
             where:{
-                roomId
+                roomId:roomId
             },
             orderBy:{
                 id:'desc'

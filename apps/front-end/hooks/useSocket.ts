@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-export default function UseSocket(){
+export default function UseSocket(roomId:number){
     const [ws,setWs]=useState<WebSocket>()
     const [laoding,setLoading]=useState(true)
 
@@ -10,6 +10,13 @@ export default function UseSocket(){
         websocket.onopen=()=>{
             setLoading(false)
             setWs(websocket)
+
+            if(!ws) return 
+
+            ws.send(JSON.stringify({
+                type:"join_room",
+                roomId
+            }))
         }
 
         websocket.onerror=()=>{
@@ -19,7 +26,7 @@ export default function UseSocket(){
         return ()=>{
             ws?.close()
         }
-    },[])
+    },[roomId,ws])
 
     return {ws,laoding}
 }

@@ -1,23 +1,22 @@
 "use client"
-import initDraw from "@/draw"
-import UseSocket from "@/hooks/useSocket"
-import { useEffect, useRef } from "react"
+import initDraw from '@/draw'
+import React, { useEffect, useRef } from 'react'
 
-export function Canvas({roomId}:{roomId:string}){
+function Canvas({roomId,ws}:{roomId:number,ws:any}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
-    const {ws,laoding}=UseSocket()
-
     useEffect(()=>{
+        // console.log(canvasRef.current)
         if(canvasRef.current){;
-            initDraw(canvasRef.current,roomId)
+            // console.log("mounted")
+            initDraw(canvasRef.current,roomId,ws)
         }
         
-    },[canvasRef])
-
-
-    if(laoding) return <div>connecting to server...</div>
-
-    return <div >
-        <canvas ref={canvasRef} className="block" ></canvas>
+    },[])
+  return (
+    <div>
+        <canvas ref={canvasRef} width={1000} height={1000} className="block" ></canvas>
     </div>
+  )
 }
+
+export default Canvas
