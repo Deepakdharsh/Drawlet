@@ -62,7 +62,7 @@ export const auth=async(req:Request,res:Response,next:NextFunction)=>{
         const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIyZjI2YWIxLWQwNDktNGJmOC1iZGMzLTgxZjA2Nzk1ZjcyYiIsImlhdCI6MTc0Nzk4OTY1OCwiZXhwIjoxNzQ4NTk0NDU4fQ.h_dtcYrX88qmKb-N_6ZfwExQb1s6IiIuQmbO7tBQFg0"
         if(token){
             //@ts-ignore
-            const decoded=jwt.verify(token,process.env.JWT_SECRET)
+            const decoded=jwt.verify(token,JWT_SECRET)
             // console.log(decoded,"from the auth middleware")
             if(!decoded){
                 return res.status(401).json({
