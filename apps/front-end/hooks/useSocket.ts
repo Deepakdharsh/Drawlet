@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export default function UseSocket(roomId:number){
-    const [ws,setWs]=useState<WebSocket>()
+    // const [ws,setWs]=useState<WebSocket | null>(null)
+    const socket=useRef<WebSocket|null>(null)
     const [laoding,setLoading]=useState(true)
 
     useEffect(()=>{
         // const token=localStorage.getItem("token")
         const websocket=new WebSocket(`ws://localhost:8080?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIyZjI2YWIxLWQwNDktNGJmOC1iZGMzLTgxZjA2Nzk1ZjcyYiIsImlhdCI6MTc0Nzk4OTY1OCwiZXhwIjoxNzQ4NTk0NDU4fQ.h_dtcYrX88qmKb-N_6ZfwExQb1s6IiIuQmbO7tBQFg0`)
+
         websocket.onopen=()=>{
             setLoading(false)
-            setWs(websocket)
+            socket.current=websocket
 
-            if(!ws) return 
+            if(!socket.current) return 
 
-            ws.send(JSON.stringify({
+            websocket.send(JSON.stringify({
                 type:"join_room",
                 roomId
             }))
@@ -24,9 +26,11 @@ export default function UseSocket(roomId:number){
         }
         
         return ()=>{
-            ws?.close()
+            console.log("unmounted ")
+            websocket?.close()
         }
-    },[roomId,ws])
 
-    return {ws,laoding}
+    },[roomId])
+
+    return [socket.current,laoding]
 }

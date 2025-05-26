@@ -1,5 +1,4 @@
 import { api } from "@/api/axios"
-import { json } from "stream/consumers"
 
 type Shape={
     type:"rect",
@@ -8,9 +7,9 @@ type Shape={
     width:number,
     height:number
 } | {
-    type:"client"
-    centerX:number
-    centery:number,
+    type:"circle",
+    x:number,
+    y:number,
     radius:number
 } 
 
@@ -23,6 +22,15 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
     if(!ctx){
         return 
+    }
+
+    socket.onmessage=(event)=>{
+        console.log("entered the message")
+        const message=JSON.parse(event.data)
+        if(message.type=="chat"){
+            existingShape.push(JSON.parse(message.message))
+            clearCanvas(existingShape,canvas,ctx)
+        }
     }
 
     clearCanvas(existingShape,canvas,ctx)
@@ -42,10 +50,11 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         clicked=false
         const width=e.clientX-startX;
         const height=e.clientY-startY;
+
         existingShape.push({
             type:"rect",
-            x:startX,
             y:startY,
+            x:startX,
             height,
             width
         })
@@ -72,7 +81,12 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             clearCanvas(existingShape,canvas,ctx)
             ctx.strokeStyle="rgba(255,255,255)"
             ctx.strokeRect(startX,startY,width,height)
-            // console.log("clicked")
+            
+            const radius=Math.sqrt(width*width+height*height)
+            ctx.beginPath();
+            ctx.arc(startX, startY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
         }
     })
     
@@ -83,7 +97,6 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
     ctx.fillStyle="rgba(0,0,0)"
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.strokeStyle="rgba(255,255,255)"
-    console.log(existingShape)
     existingShape.map((shape)=>{
         if(shape.type=="rect"){
             return ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
