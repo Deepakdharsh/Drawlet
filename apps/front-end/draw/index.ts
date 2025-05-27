@@ -8,13 +8,12 @@ type Shape={
     height:number
 } | {
     type:"circle",
-    x:number,
-    y:number,
-    radius:number
+    rectX:number,
+    rectY:number,
+    size:number
 } 
 
 export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,socket:WebSocket){
-    // console.log("initilized canvas")
 
     const ctx=canvas.getContext("2d") 
     
@@ -51,25 +50,45 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         const width=e.clientX-startX;
         const height=e.clientY-startY;
 
-        existingShape.push({
-            type:"rect",
-            y:startY,
-            x:startX,
-            height,
-            width
-        })
+        const size=Math.min(Math.abs(width),Math.abs(height))
 
+        const rectX = width < 0 ? startX - size : startX;
+        const rectY = height < 0 ? startY - size : startY;
+
+        // existingShape.push({
+        //     type:"rect",
+        //     y:startY,
+        //     x:startX,
+        //     height,
+        //     width
+        // })
+
+        if("rect"){
         socket.send(JSON.stringify({
             type:"chat",
             message:JSON.stringify({
-            type:"rect",
-            x:startX,
-            y:startY,
-            height,
-            width
+                type:"rect",
+                x:startX,
+                y:startY,
+                height,
+                width
             }),
             roomId
-        }))
+          }))
+        }else if("circle"){
+            socket.send(JSON.stringify({
+            type:"chat",
+            message:JSON.stringify({
+                type:"rect",
+                rectX,
+                rectY,
+                size,
+            }),
+            roomId
+          }))
+        }
+
+      
 
     })
 
@@ -78,15 +97,24 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         if(clicked){
             const width=e.clientX-startX
             const height=e.clientY-startY
-            clearCanvas(existingShape,canvas,ctx)
-            ctx.strokeStyle="rgba(255,255,255)"
-            ctx.strokeRect(startX,startY,width,height)
-            
-            const radius=Math.sqrt(width*width+height*height)
-            ctx.beginPath();
-            ctx.arc(startX, startY, radius, 0, Math.PI * 2);
-            ctx.stroke();
 
+            const size=Math.min(Math.abs(width),Math.abs(height))
+            const rectX = width < 0 ? startX - size : startX;
+            const rectY = height < 0 ? startY - size : startY;
+
+            clearCanvas(existingShape,canvas,ctx)
+
+            if("rect"){
+                ctx.strokeStyle="rgba(255,255,255)"
+                ctx.strokeRect(startX,startY,width,height)
+            }else if("circle"){
+                ctx.beginPath();
+                ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
+                ctx.stroke();
+            }
+            
+
+            
         }
     })
     
@@ -99,7 +127,11 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
     ctx.strokeStyle="rgba(255,255,255)"
     existingShape.map((shape)=>{
         if(shape.type=="rect"){
-            return ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
+            ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
+        }else if(shape.type=="circle"){
+            ctx.beginPath();
+            ctx.ellipse( shape.rectX + shape.size / 2, shape.rectY + shape.size / 2, shape.size / 2, shape.size / 2 , 0 ,0 , 2 * Math.PI);
+            ctx.stroke(); 
         }
     })
 }
