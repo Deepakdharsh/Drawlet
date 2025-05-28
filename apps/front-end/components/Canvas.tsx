@@ -28,7 +28,7 @@ function Canvas({roomId}:{roomId:number,}) {
 
   return (
     <div>
-        <canvas ref={canvasRef} width={1000} height={1000} className="block" ></canvas>
+        <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="block"></canvas>
         <div className='text-amber-50 absolute top-10 left-10'>
           <Icon type={"rect"} onclick={handleClick} icon={<Square/>}/>
           <Icon type={"circle"} onclick={handleClick}icon={<Circle/>}/>

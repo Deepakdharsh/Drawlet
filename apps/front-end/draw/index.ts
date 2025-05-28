@@ -6,11 +6,18 @@ type Shape={
     y:number,
     width:number,
     height:number
-} | {
+    
+}| {
     type:"circle",
     rectX:number,
     rectY:number,
     size:number
+}| {
+    type:"line",
+    startX:number,
+    startY:number,
+    endX:number,
+    endY:number
 } 
 
 export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,socket:WebSocket){
@@ -78,18 +85,32 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         }else if(window.shapeType=="circle"){
             console.log("entered the circle")
             socket.send(JSON.stringify({
-            type:"chat",
-            message:JSON.stringify({
-                type:"circle",
-                rectX,
-                rectY,
-                size,
-            }),
-            roomId
-          }))
-        }
-
-      
+                type:"chat",
+                message:JSON.stringify({
+                    type:"circle",
+                    rectX,
+                    rectY,
+                    size,
+                }),
+                roomId
+            }))
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="line"){
+            ctx.beginPath()
+            ctx.moveTo(startX,startY)
+            ctx.lineTo(e.clientX,e.clientY)
+             socket.send(JSON.stringify({
+                type:"chat",
+                message:JSON.stringify({
+                    type:"line",
+                    startX,
+                    startY,
+                    endX:e.clientX,
+                    endY:e.clientY
+                }),
+                roomId
+            }))
+        }      
 
     })
 
@@ -113,10 +134,14 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 ctx.beginPath();
                 ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
                 ctx.stroke();
-            }
-            
-
-            
+               //@ts-expect-error dfa
+            }else if(window.shapeType=="line"){
+                ctx.beginPath()
+                ctx.moveTo(startX,startY)
+                ctx.lineTo(e.clientX,e.clientY)
+                ctx.stroke()
+            }    
+                        
         }
     })
     
@@ -131,10 +156,14 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
         if(shape.type=="rect"){
             ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
         }else if(shape.type=="circle"){
-            console.log(shape.type)
             ctx.beginPath();
             ctx.ellipse( shape.rectX + shape.size / 2, shape.rectY + shape.size / 2, shape.size / 2, shape.size / 2 , 0 ,0 , 2 * Math.PI);
             ctx.stroke(); 
+        }else if(shape.type=="line"){
+            ctx.beginPath()
+            ctx.moveTo(shape.startX,shape.startY)
+            ctx.lineTo(shape.endX,shape.endY)
+            ctx.stroke() 
         }
     })
 }
