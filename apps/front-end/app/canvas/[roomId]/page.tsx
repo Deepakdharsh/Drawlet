@@ -1,5 +1,5 @@
 import { api } from "@/api/axios"
-import { RoomCanvas } from "@/components/RoomCanvas"
+import Canvas from "@/components/Canvas"
 
 export default async function canvas({params}:{
     params:{
@@ -7,7 +7,8 @@ export default async function canvas({params}:{
     }
 }){
     const {roomId}=await (params)
+    console.log(roomId)
     const res=await api.get(`/chat/room/${roomId}`)
     const room=res.data.id
-   return  <RoomCanvas roomId={room}/>
+   return <Canvas roomId={room}/>
 }

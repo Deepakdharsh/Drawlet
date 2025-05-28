@@ -24,7 +24,6 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     }
 
     socket.onmessage=(event)=>{
-        console.log("entered the message")
         const message=JSON.parse(event.data)
         if(message.type=="chat"){
             existingShape.push(JSON.parse(message.message))
@@ -62,24 +61,26 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         //     height,
         //     width
         // })
-
-        if("rect"){
-        socket.send(JSON.stringify({
-            type:"chat",
-            message:JSON.stringify({
-                type:"rect",
-                x:startX,
-                y:startY,
-                height,
-                width
-            }),
-            roomId
-          }))
-        }else if("circle"){
+        //@ts-expect-error dfa
+        if(window.shapeType=="rect"){
+            socket.send(JSON.stringify({
+                type:"chat",
+                message:JSON.stringify({
+                    type:"rect",
+                    x:startX,
+                    y:startY,
+                    height,
+                    width
+                }),
+                roomId
+            }))
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="circle"){
+            console.log("entered the circle")
             socket.send(JSON.stringify({
             type:"chat",
             message:JSON.stringify({
-                type:"rect",
+                type:"circle",
                 rectX,
                 rectY,
                 size,
@@ -103,11 +104,12 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             const rectY = height < 0 ? startY - size : startY;
 
             clearCanvas(existingShape,canvas,ctx)
-
-            if("rect"){
+            //@ts-expect-error dfa
+            if(window.shapeType=="rect"){
                 ctx.strokeStyle="rgba(255,255,255)"
                 ctx.strokeRect(startX,startY,width,height)
-            }else if("circle"){
+                //@ts-expect-error fads
+            }else if(window.shapeType=="circle"){
                 ctx.beginPath();
                 ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
                 ctx.stroke();
@@ -129,6 +131,7 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
         if(shape.type=="rect"){
             ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
         }else if(shape.type=="circle"){
+            console.log(shape.type)
             ctx.beginPath();
             ctx.ellipse( shape.rectX + shape.size / 2, shape.rectY + shape.size / 2, shape.size / 2, shape.size / 2 , 0 ,0 , 2 * Math.PI);
             ctx.stroke(); 

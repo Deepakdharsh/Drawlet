@@ -29,6 +29,7 @@ wss.on("connection", (ws: WebSocket, request) => {
   }
 
   users.push({
+    
     userId,
     rooms: [],
     ws,
@@ -54,7 +55,9 @@ wss.on("connection", (ws: WebSocket, request) => {
     }
 
     if (parsedData.type === "chat") {
-        await prismaClient.chat.create({
+      console.log("entered chat")
+      try {
+          await prismaClient.chat.create({
             data:{
                 message:parsedData.message,
                 roomId:parsedData.roomId,
@@ -70,6 +73,9 @@ wss.on("connection", (ws: WebSocket, request) => {
         }))
         }
       });
+      } catch (error) {
+        console.log("something went wrong: "+error)
+      }    
     }
   });
 });
@@ -101,3 +107,4 @@ wss.on("connection", (ws: WebSocket, request) => {
 
 }
 */
+

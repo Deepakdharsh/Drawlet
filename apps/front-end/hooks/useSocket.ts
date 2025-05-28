@@ -30,7 +30,7 @@ export default function UseSocket(roomId:number){
             websocket?.close()
         }
 
-    },[roomId])
+    },[roomId,socket])
 
-    return [socket.current,laoding]
+    return {ws:socket.current,laoding}
 }
