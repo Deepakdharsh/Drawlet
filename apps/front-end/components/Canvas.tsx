@@ -2,10 +2,10 @@
 import initDraw from '@/draw'
 import React, { useEffect, useRef } from 'react'
 import Icon from './Icon'
-import {Square,Circle,Minus } from "lucide-react"
+import {Square,Circle,Minus,Pencil } from "lucide-react"
 import UseSocket from '@/hooks/useSocket'
 
-type ShapeType = "rect" | "circle" | "line"
+type ShapeType = "rect" | "circle" | "line" | "pencil"
 
 function Canvas({roomId}:{roomId:number,}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
@@ -33,6 +33,7 @@ function Canvas({roomId}:{roomId:number,}) {
           <Icon type={"rect"} onclick={handleClick} icon={<Square/>}/>
           <Icon type={"circle"} onclick={handleClick}icon={<Circle/>}/>
           <Icon type={"line"} onclick={handleClick} icon={<Minus />}/>
+          <Icon type={"pencil"} onclick={handleClick} icon={<Pencil />}/>
         </div>
     </div>
   )

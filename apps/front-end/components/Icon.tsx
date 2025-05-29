@@ -1,9 +1,9 @@
 import { ReactNode } from "react"
 
 interface IconProps {
-    onclick:(type:"circle"|"rect"|"line")=>void,
+    onclick:(type:"circle"|"rect"|"line"|"pencil")=>void,
     icon:ReactNode
-    type:"circle"|"rect"|"line"
+    type:"circle"|"rect"|"line"|"pencil"
 }
 
 function Icon({onclick,icon,type}:IconProps) {

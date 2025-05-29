@@ -1,4 +1,5 @@
 import { api } from "@/api/axios"
+import { Shapes } from "lucide-react"
 
 type Shape={
     type:"rect",
@@ -18,7 +19,17 @@ type Shape={
     startY:number,
     endX:number,
     endY:number
-} 
+} | {
+    type:"pencil",
+    strokes:[Strokes]
+    startX:number,
+    startY:number
+}
+
+type Strokes={
+    currentX:number,
+    currentY:number
+}
 
 export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,socket:WebSocket){
 
@@ -43,12 +54,18 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     let clicked=false
     let startX=0
     let startY=0
+    const strokes:Strokes[]=[]
+    const canvasOffsetX = canvas.offsetLeft
 
     canvas.addEventListener("mousedown",(e)=>{
         clicked=true
         startX=e.clientX
         startY=e.clientY
-        // console.log(e.clientX,"mouse down")
+        //@ts-expect-error dfasdf
+        if(window.shapeType=="pencil"){
+            ctx.beginPath()
+            ctx.moveTo(startX,startY)
+        }
     })
     
     canvas.addEventListener("mouseup",(e)=>{
@@ -68,6 +85,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         //     height,
         //     width
         // })
+
         //@ts-expect-error dfa
         if(window.shapeType=="rect"){
             socket.send(JSON.stringify({
@@ -96,10 +114,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             }))
             //@ts-expect-error dfa
         }else if(window.shapeType=="line"){
-            ctx.beginPath()
-            ctx.moveTo(startX,startY)
-            ctx.lineTo(e.clientX,e.clientY)
-             socket.send(JSON.stringify({
+            socket.send(JSON.stringify({
                 type:"chat",
                 message:JSON.stringify({
                     type:"line",
@@ -110,7 +125,21 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 }),
                 roomId
             }))
-        }      
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="pencil"){
+            // ctx.stroke();
+            // ctx.beginPath();
+            socket.send(JSON.stringify({
+                type:"chat",
+                message:JSON.stringify({
+                    type:"pencil",
+                    startX,
+                    startY,
+                    strokes
+                }),
+                roomId
+            }))
+        }    
 
     })
 
@@ -124,23 +153,35 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             const rectX = width < 0 ? startX - size : startX;
             const rectY = height < 0 ? startY - size : startY;
 
-            clearCanvas(existingShape,canvas,ctx)
             //@ts-expect-error dfa
             if(window.shapeType=="rect"){
+                clearCanvas(existingShape,canvas,ctx)
                 ctx.strokeStyle="rgba(255,255,255)"
                 ctx.strokeRect(startX,startY,width,height)
                 //@ts-expect-error fads
             }else if(window.shapeType=="circle"){
+                clearCanvas(existingShape,canvas,ctx)
                 ctx.beginPath();
                 ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
-                ctx.stroke();
-               //@ts-expect-error dfa
+                ctx.stroke()
+                ctx.closePath()
+                //@ts-expect-error dfa
             }else if(window.shapeType=="line"){
+                clearCanvas(existingShape,canvas,ctx)
                 ctx.beginPath()
                 ctx.moveTo(startX,startY)
                 ctx.lineTo(e.clientX,e.clientY)
                 ctx.stroke()
-            }    
+                ctx.closePath()
+                //@ts-expect-error dfa
+            }else if(window.shapeType=="pencil"){
+                strokes.push({
+                    currentX:e.clientX-canvasOffsetX,
+                    currentY:e.clientY
+                })
+                ctx.lineTo(e.clientX-canvasOffsetX,e.clientY)
+                ctx.stroke()
+            }
                         
         }
     })
@@ -164,8 +205,16 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
             ctx.moveTo(shape.startX,shape.startY)
             ctx.lineTo(shape.endX,shape.endY)
             ctx.stroke() 
+        }else if(shape.type=="pencil"){
+            ctx.beginPath()
+            ctx.moveTo(shape.startX,shape.startY)
+            shape.strokes.map((cur)=>{
+                ctx.lineTo(cur.currentX,cur.currentY)
+                ctx.stroke()
+            })
         }
     })
+    ctx.closePath()
 }
 
 async function getExistingShapes(roomId:number){
