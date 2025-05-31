@@ -1,5 +1,4 @@
 import { api } from "@/api/axios"
-import { Shapes } from "lucide-react"
 
 type Shape={
     type:"rect",
@@ -45,11 +44,13 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         const message=JSON.parse(event.data)
         if(message.type=="chat"){
             existingShape.push(JSON.parse(message.message))
-            clearCanvas(existingShape,canvas,ctx)
+            // clearCanvas(existingShape,canvas,ctx)
+            renderStrokes(existingShape,canvas,ctx)
         }
     }
 
-    clearCanvas(existingShape,canvas,ctx)
+    // clearCanvas(existingShape,canvas,ctx)
+    renderStrokes(existingShape,canvas,ctx)
 
     let clicked=false
     let startX=0
@@ -61,10 +62,12 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         clicked=true
         startX=e.clientX
         startY=e.clientY
-        //@ts-expect-error dfasdf
+
+        //@ts-expect-error dfad
         if(window.shapeType=="pencil"){
             ctx.beginPath()
             ctx.moveTo(startX,startY)
+            console.log(startX,startY)
         }
     })
     
@@ -127,8 +130,9 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             }))
             //@ts-expect-error dfa
         }else if(window.shapeType=="pencil"){
-            // ctx.stroke();
-            // ctx.beginPath();
+            ctx.stroke();
+            ctx.beginPath();
+            console.log(`mouseUp:${startX,startY}`)
             socket.send(JSON.stringify({
                 type:"chat",
                 message:JSON.stringify({
@@ -152,11 +156,11 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             const size=Math.min(Math.abs(width),Math.abs(height))
             const rectX = width < 0 ? startX - size : startX;
             const rectY = height < 0 ? startY - size : startY;
+            ctx.strokeStyle="rgba(255,255,255)"
 
             //@ts-expect-error dfa
             if(window.shapeType=="rect"){
                 clearCanvas(existingShape,canvas,ctx)
-                ctx.strokeStyle="rgba(255,255,255)"
                 ctx.strokeRect(startX,startY,width,height)
                 //@ts-expect-error fads
             }else if(window.shapeType=="circle"){
@@ -164,7 +168,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 ctx.beginPath();
                 ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
                 ctx.stroke()
-                ctx.closePath()
+                // ctx.closePath()
                 //@ts-expect-error dfa
             }else if(window.shapeType=="line"){
                 clearCanvas(existingShape,canvas,ctx)
@@ -172,7 +176,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 ctx.moveTo(startX,startY)
                 ctx.lineTo(e.clientX,e.clientY)
                 ctx.stroke()
-                ctx.closePath()
+                // ctx.closePath()
                 //@ts-expect-error dfa
             }else if(window.shapeType=="pencil"){
                 strokes.push({
@@ -193,28 +197,56 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
     ctx.fillStyle="rgba(0,0,0)"
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.strokeStyle="rgba(255,255,255)"
-    existingShape.map((shape)=>{
+    ctx.closePath()
+
+    existingShape.forEach((shape)=>{
         if(shape.type=="rect"){
             ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
         }else if(shape.type=="circle"){
             ctx.beginPath();
             ctx.ellipse( shape.rectX + shape.size / 2, shape.rectY + shape.size / 2, shape.size / 2, shape.size / 2 , 0 ,0 , 2 * Math.PI);
             ctx.stroke(); 
+            ctx.closePath()
         }else if(shape.type=="line"){
             ctx.beginPath()
             ctx.moveTo(shape.startX,shape.startY)
             ctx.lineTo(shape.endX,shape.endY)
             ctx.stroke() 
+            ctx.closePath()
         }else if(shape.type=="pencil"){
-            ctx.beginPath()
-            ctx.moveTo(shape.startX,shape.startY)
-            shape.strokes.map((cur)=>{
+            
+            shape.strokes.forEach((cur,i)=>{
+                if(i==0){
+                    ctx.beginPath()   
+                    // ctx.moveTo(shape.startX,shape.startY)
+                }
+                if(i==shape.strokes.length-1){
+                    ctx.closePath()
+                    ctx.beginPath()
+                }
                 ctx.lineTo(cur.currentX,cur.currentY)
-                ctx.stroke()
+                ctx.stroke();
+                // ctx.closePath()
             })
         }
     })
-    ctx.closePath()
+}
+
+function renderStrokes(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRenderingContext2D){
+    ctx.strokeStyle="rgba(255,255,255)"
+    existingShape.forEach((shape)=>{
+        if(shape.type=="pencil"){
+            ctx.beginPath();
+            shape.strokes.forEach((cur,i)=>{
+                if(i==0){
+                    ctx.moveTo(cur.currentX,cur.currentY)
+                }else{
+                    ctx.lineTo(cur.currentX,cur.currentY)
+                }
+            })
+        }
+        ctx.stroke()
+    })
 }
 
 async function getExistingShapes(roomId:number){
