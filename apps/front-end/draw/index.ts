@@ -1,4 +1,4 @@
-/* import { api } from "@/api/axios"
+import { api } from "@/api/axios"
 
 type Shape={
     type:"rect",
@@ -6,7 +6,6 @@ type Shape={
     y:number,
     width:number,
     height:number
-    
 }| {
     type:"circle",
     rectX:number,
@@ -65,9 +64,17 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
         //@ts-expect-error dfad
         if(window.shapeType=="pencil"){
+            strokes.length=0
             ctx.beginPath()
             ctx.moveTo(startX,startY)
             console.log(startX,startY)
+            strokes.push({
+                currentX:startX,
+                currentY:startY
+            })
+            //@ts-expect-error dfad
+        }else if(window.shapeType=="eraser"){
+
         }
     })
     
@@ -132,7 +139,6 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         }else if(window.shapeType=="pencil"){
             ctx.stroke();
             ctx.beginPath();
-            console.log(`mouseUp:${startX,startY}`)
             socket.send(JSON.stringify({
                 type:"chat",
                 message:JSON.stringify({
@@ -156,6 +162,11 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             const size=Math.min(Math.abs(width),Math.abs(height))
             const rectX = width < 0 ? startX - size : startX;
             const rectY = height < 0 ? startY - size : startY;
+
+            const rect = canvas.getBoundingClientRect();
+            const EraseX = e.clientX - rect.left;
+            const EraseY = e.clientY - rect.top;
+
             ctx.strokeStyle="rgba(255,255,255)"
 
             //@ts-expect-error dfa
@@ -185,6 +196,15 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 })
                 ctx.lineTo(e.clientX-canvasOffsetX,e.clientY)
                 ctx.stroke()
+                //@ts-expect-error dfa
+            }else if(window.shapeType=="erase"){
+                console.log("using eraser")
+               const index = eraseAt(e.clientX,e.clientY,existingShape)
+               console.log(index)
+                if(index!==-1){
+                    existingShape.splice(index,1)
+                    clearCanvas(existingShape,canvas,ctx)
+                }
             }
                         
         }
@@ -192,13 +212,33 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     
 }
 
+/*  type:"rect",
+    x:number,
+    y:number,
+    width:number,
+    height:number */
+
+function eraseAt(x:number,y:number,shapes:any[]){
+    for(let i=shapes.length-1;i>=0;i--){
+        const shape=shapes[i]
+        if(shape.type=="rect"){
+            console.log("entered rect")
+            if(x >= shape.x && x <= shape.x + shape.width &&
+               y >= shape.y && y <= shape.y + shape.height 
+            ){
+                return i
+            }
+        }
+    }
+    return -1
+}
+
 function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRenderingContext2D){
     ctx.clearRect(0,0,canvas.width,canvas.height) 
     ctx.fillStyle="rgba(0,0,0)"
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.strokeStyle="rgba(255,255,255)"
-    // ctx.closePath()
-    ctx.beginPath();
+
     existingShape.forEach((shape)=>{
         if(shape.type=="rect"){
             ctx.strokeRect(shape.x,shape.y,shape.width,shape.height)
@@ -206,42 +246,25 @@ function clearCanvas(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRe
             ctx.beginPath();
             ctx.ellipse( shape.rectX + shape.size / 2, shape.rectY + shape.size / 2, shape.size / 2, shape.size / 2 , 0 ,0 , 2 * Math.PI);
             ctx.stroke(); 
-            ctx.closePath()
+            // ctx.closePath()
         }else if(shape.type=="line"){
             ctx.beginPath()
             ctx.moveTo(shape.startX,shape.startY)
             ctx.lineTo(shape.endX,shape.endY)
             ctx.stroke() 
-            ctx.closePath()
+            // ctx.closePath()
         }else if(shape.type=="pencil"){
-            ctx.clearRect(0,0,canvas.width,canvas.height) 
 
             if(shape.type!=="pencil" || !shape.strokes) return 
 
             ctx.beginPath();
             ctx.moveTo(shape.strokes[0].currentX,shape.strokes[0].currentY)
             
-            shape.strokes.forEach((cur,i)=>{
-                ctx.lineTo(cur.currentX,cur.currentY)
-            })
+            for(let i=1;i<shape.strokes.length;i++){
+                ctx.lineTo(shape.strokes[i].currentX,shape.strokes[i].currentY)
+            }
             ctx.stroke()
             
-        }
-    })
-}
-
-function renderStrokes(existingShape:Shape[],canvas:HTMLCanvasElement,ctx:CanvasRenderingContext2D){
-    ctx.strokeStyle="rgba(255,255,255)"
-    existingShape.forEach((shape)=>{
-        if(shape.type=="pencil"){
-            ctx.closePath()
-            ctx.beginPath();
-            ctx.moveTo(shape.strokes[0].currentX,shape.strokes[0].currentY)
-            shape.strokes.forEach((cur,i)=>{
-                ctx.lineTo(cur.currentX,cur.currentY)
-            })
-            ctx.beginPath();
-            ctx.stroke()
         }
     })
 }
