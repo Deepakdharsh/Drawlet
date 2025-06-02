@@ -156,16 +156,17 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     
     canvas.addEventListener("mousemove",(e)=>{
         if(clicked){
-            const width=e.clientX-startX
-            const height=e.clientY-startY
+            const rect = canvas.getBoundingClientRect();
+            const EraseX = e.clientX - rect.left;
+            const EraseY = e.clientY - rect.top;
+
+            const width=(e.clientX-rect.left)-startX
+            const height=(e.clientY-rect.top)-startY
 
             const size=Math.min(Math.abs(width),Math.abs(height))
             const rectX = width < 0 ? startX - size : startX;
             const rectY = height < 0 ? startY - size : startY;
 
-            const rect = canvas.getBoundingClientRect();
-            const EraseX = e.clientX - rect.left;
-            const EraseY = e.clientY - rect.top;
 
             ctx.strokeStyle="rgba(255,255,255)"
 
@@ -199,7 +200,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 //@ts-expect-error dfa
             }else if(window.shapeType=="erase"){
                 console.log("using eraser")
-               const index = eraseAt(e.clientX,e.clientY,existingShape)
+               const index = eraseAt(EraseX,EraseY,existingShape)
                console.log(index)
                 if(index!==-1){
                     existingShape.splice(index,1)
