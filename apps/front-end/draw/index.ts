@@ -44,12 +44,10 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         if(message.type=="chat"){
             existingShape.push(JSON.parse(message.message))
             clearCanvas(existingShape,canvas,ctx)
-            // renderStrokes(existingShape,canvas,ctx)
         }
     }
 
     clearCanvas(existingShape,canvas,ctx)
-    // renderStrokes(existingShape,canvas,ctx)
 
     let clicked=false
     let startX=0
@@ -72,9 +70,6 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 currentX:startX,
                 currentY:startY
             })
-            //@ts-expect-error dfad
-        }else if(window.shapeType=="eraser"){
-
         }
     })
     
