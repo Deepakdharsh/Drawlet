@@ -63,6 +63,10 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         //@ts-expect-error dfad
         if(window.shapeType=="pencil"){
             strokes.length=0
+            ctx.strokeStyle="rgba(255,255,255)"
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
             ctx.beginPath()
             ctx.moveTo(startX,startY)
             console.log(startX,startY)
@@ -190,6 +194,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                     currentX:e.clientX-canvasOffsetX,
                     currentY:e.clientY
                 })
+
                 ctx.lineTo(e.clientX-canvasOffsetX,e.clientY)
                 ctx.stroke()
                 //@ts-expect-error dfa
