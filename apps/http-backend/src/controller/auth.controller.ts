@@ -64,7 +64,7 @@ const signin=async(req:Request,res:Response)=>{
 const signup=async(req:Request,res:Response)=>{
     try {
         const {data,error}=CreateUserSchema.safeParse(req.body)
-    
+        console.log(data)
         if(error){
             return res.json(411).json({
                 message:"invaild inputs"

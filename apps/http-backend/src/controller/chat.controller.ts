@@ -8,7 +8,7 @@ const createRoom=async(req:Request,res:Response)=>{
         //@ts-ignore
         const userId=req.userId
         const {data,error}=CreateRoomSchema.safeParse(req.body)
-    
+    console.log(data)
         if(error) return res.status(409).json({message:'invaild inputs'})
         
         const isRoomExist=await prismaClient.room.findFirst({where:{slug:data.name}})
@@ -75,10 +75,11 @@ const getRoomId=async(req:Request,res:Response)=>{
     try {
         //@ts-ignore
         const roomId=req.params.slug
-    
+        console.log(roomId,typeof roomId)
         const room=await prismaClient.room.findFirst({
             where:{slug:roomId}
         })
+        // const room=await prismaClient.room.findMany()
 
         console.log(room)
     

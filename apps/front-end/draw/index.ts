@@ -219,6 +219,11 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     width:number,
     height:number */
 
+
+/*  ctx.beginPath();
+    ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
+    ctx.stroke() */
+
 function eraseAt(x:number,y:number,shapes:any[]){
     for(let i=shapes.length-1;i>=0;i--){
         const shape=shapes[i]
@@ -229,6 +234,25 @@ function eraseAt(x:number,y:number,shapes:any[]){
             ){
                 return i
             }
+        }else if(shape.type=="circle"){
+            console.log("entered circle")
+            const centerX = (shape.rectX + shape.size) / 2;
+            const centerY = (shape.rectY + shape.size) / 2;
+            const radius = shape.size / 2;
+
+            const dx = x - centerX;
+            const dy = y - centerY;
+            // const distanceSquared = dx * dx + dy * dy;
+
+            console.log(`Checking circle at index ${i}: click (${x},${y}), center (${centerX},${centerY}), r=${radius}`);
+
+                const inside = (dx * dx) / (shape.radiusX * shape.radiusX) + (dy * dy) / (shape.radiusY * shape.radiusY) <= 1;
+
+            if (inside) {
+                console.log("true====================================")
+                return i;
+            }
+
         }
     }
     return -1

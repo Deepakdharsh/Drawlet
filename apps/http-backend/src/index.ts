@@ -20,5 +20,5 @@ app.use("/api/v1/chat",chatRouter)
 
 
 app.listen(3005,()=>{
-    console.log("server has started on port 3001")
+    console.log("server has started on port 3005")
 })

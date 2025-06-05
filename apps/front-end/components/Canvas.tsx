@@ -14,9 +14,14 @@ function Canvas({roomId}:{roomId:number,}) {
       if( ws == null) return
       
         if(canvasRef.current){;
-            initDraw(canvasRef.current,roomId,ws)
+          initDraw(canvasRef.current,roomId,ws)
         }
-        
+      console.log("MOUNTED")
+
+      return ()=>{
+        console.log("UNMOUNTED")
+      }
+
     },[roomId,ws])
 
     function handleClick(type:ShapeType):void{
