@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 
-type shapes="circle"|"rect"|"line"|"pencil"|"erase"
+type shapes="circle"|"rect"|"line"|"pencil"|"erase"|"panning"
 
 interface IconProps {
     onclick:(type:shapes)=>void,

@@ -1,4 +1,5 @@
 import { api } from "@/api/axios"
+import { Caveat } from "next/font/google"
 
 type Shape={
     type:"rect",
@@ -55,6 +56,58 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     const strokes:Strokes[]=[]
     const canvasOffsetX = canvas.offsetLeft
 
+    let offSetX=0
+    let offSetY=0
+    // let isZooming=false
+    // let lastX, lastY;
+
+    let scale=1;
+
+    window.addEventListener("resize",function(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    //  const dpr = window.devicePixelRatio || 1;
+    //  canvas.width = window.innerWidth * dpr;
+    //  canvas.height = window.innerHeight * dpr;
+    //  canvas.style.width = window.innerWidth + 'px';
+    //  canvas.style.height = window.innerHeight + 'px';
+    //  ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+    //  ctx.scale(dpr, dpr); // Scale for high-DPI
+    clearCanvas(existingShape,canvas,ctx)
+    })
+
+    function updateZoomingDisplay(){
+        const zoomPercent = Math.round(scale * 100)
+        console.log(`Zoom: ${zoomPercent}`)
+    }
+
+    function updatePanning(){
+        console.log("entered Panning")
+        ctx?.setTransform(1,0,0,1,0,0)
+        //@ts-expect-error daffs
+        ctx.fillStyle="rgba(0,0,0)"
+        ctx?.fillRect(0,0,window.innerWidth,window.innerHeight)
+
+        ctx?.scale(scale, scale); 
+
+        // if(isZooming){
+        //     isZooming=false
+        // }
+
+        ctx?.setTransform(scale, 0, 0, scale, offSetX, offSetY);
+        // ctx?.translate(offSetX,offSetY)
+
+        // if(!isZooming){
+        // }
+
+
+        // updateZoomingDisplay()
+        //@ts-expect-error daffs
+        clearCanvas(existingShape,canvas,ctx)
+    }
+
+
     canvas.addEventListener("mousedown",(e)=>{
         clicked=true
         startX=e.clientX
@@ -94,6 +147,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         //     height,
         //     width
         // })
+ 
 
         //@ts-expect-error dfa
         if(window.shapeType=="rect"){
@@ -148,7 +202,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 }),
                 roomId
             }))
-        }    
+        }
 
     })
 
@@ -206,9 +260,40 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                     existingShape.splice(index,1)
                     clearCanvas(existingShape,canvas,ctx)
                 }
+                //@ts-expect-error dfa
+            }else if(window.shapeType=="panning"){
+                const dx=e.clientX-startX;
+                const dy=e.clientY-startY;
+                offSetX+=dx
+                offSetY+=dy
+                startX=e.clientX
+                startY=e.clientY
+                updatePanning()
             }
                         
         }
+    })
+
+    canvas.addEventListener("wheel",(e)=>{
+        e.preventDefault()
+        console.log("entered")
+        const mouseX=e.clientX
+        const mouseY=e.clientY
+
+        const zoomFactor = 0.05;
+        const zoom=e.deltaY < 0 ? (1 + zoomFactor) : (1 - zoomFactor)
+        const newScale = scale * zoom;
+
+        const worldX = (mouseX - offSetX) / scale;
+        const worldY = (mouseY - offSetY) / scale;
+
+        scale = newScale
+
+       offSetX = mouseX - worldX * scale;
+       offSetY = mouseY - worldY * scale;
+
+        // isZooming=true
+        updatePanning()
     })
     
 }
@@ -224,32 +309,24 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
     ctx.stroke() */
 
-function eraseAt(x:number,y:number,shapes:any[]){
+function eraseAt(x:number,y:number,shapes:Shape[]){
     for(let i=shapes.length-1;i>=0;i--){
         const shape=shapes[i]
         if(shape.type=="rect"){
-            console.log("entered rect")
             if(x >= shape.x && x <= shape.x + shape.width &&
                y >= shape.y && y <= shape.y + shape.height 
             ){
                 return i
             }
         }else if(shape.type=="circle"){
-            console.log("entered circle")
-            const centerX = (shape.rectX + shape.size) / 2;
-            const centerY = (shape.rectY + shape.size) / 2;
+            const centerX = shape.rectX + shape.size / 2;
+            const centerY = shape.rectY + shape.size / 2;
             const radius = shape.size / 2;
 
             const dx = x - centerX;
             const dy = y - centerY;
-            // const distanceSquared = dx * dx + dy * dy;
 
-            console.log(`Checking circle at index ${i}: click (${x},${y}), center (${centerX},${centerY}), r=${radius}`);
-
-                const inside = (dx * dx) / (shape.radiusX * shape.radiusX) + (dy * dy) / (shape.radiusY * shape.radiusY) <= 1;
-
-            if (inside) {
-                console.log("true====================================")
+            if (dx * dx + dy * dy <= radius * radius) {
                 return i;
             }
 

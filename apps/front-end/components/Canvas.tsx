@@ -1,15 +1,16 @@
 "use client"
 import initDraw from '@/draw'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
-import {Square,Circle,Minus,Pencil,Eraser } from "lucide-react"
+import {Square,Circle,Minus,Pencil,Eraser,Hand} from "lucide-react"
 import UseSocket from '@/hooks/useSocket'
 
-type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase"
+type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase" | "panning"
 
 function Canvas({roomId}:{roomId:number,}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
     const {ws,laoding}=UseSocket(roomId)
+    const [isPanning,setPanning]=useState(false)
     useEffect(()=>{
       if( ws == null) return
       
@@ -27,14 +28,20 @@ function Canvas({roomId}:{roomId:number,}) {
     function handleClick(type:ShapeType):void{
       //@ts-expect-error dfha
       window.shapeType=type
+      if(type=="panning"){
+        setPanning(true)
+      }else{
+        setPanning(false)
+      }
     }
   
     if(laoding) return <div>Loading...</div>
 
   return (
-    <div>
+    <div className={`${isPanning ? "cursor-grab" : "" }`}>
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="block"></canvas>
-        <div className='text-amber-50 absolute top-10 left-10'>
+        <div className='text-amber-50 absolute top-10 left-1/2 -translate-x-1/2 '>
+          <Icon type={"panning"} onclick={handleClick} icon={<Hand/>}/>
           <Icon type={"rect"} onclick={handleClick} icon={<Square/>}/>
           <Icon type={"circle"} onclick={handleClick}icon={<Circle/>}/>
           <Icon type={"line"} onclick={handleClick} icon={<Minus />}/>
