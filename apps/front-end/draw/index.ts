@@ -1,5 +1,4 @@
 import { api } from "@/api/axios"
-import { Caveat } from "next/font/google"
 
 type Shape={
     type:"rect",
@@ -30,7 +29,7 @@ type Strokes={
     currentY:number
 }
 
-export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,socket:WebSocket){
+export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,socket:WebSocket,setZoomPercentage){
 
     const ctx=canvas.getContext("2d") 
     
@@ -63,6 +62,50 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
     let scale=1;
 
+    const zoomPercent = Math.round(scale * 100)
+    setZoomPercentage(zoomPercent)
+
+
+    function toWorld(x: number, y: number) {
+    return {
+        x: (x - offSetX) / scale,
+        y: (y - offSetY) / scale
+    };
+}
+
+    document.querySelector(".icZoom")?.addEventListener("click",()=>{
+        console.log("entered ic")
+        zoomWithCenter(1.10)
+    })
+    
+    document.querySelector(".dcZoom")?.addEventListener("click",()=>{
+        console.log("entered dc")
+        zoomWithCenter(0.90)
+    })
+
+    function zoomWithCenter(factor:number) {
+    const zoomFactor = factor; // e.g. 1.05 or 0.95
+    const newScale = scale * zoomFactor;
+
+    const minZoom = 0.1;
+    const maxZoom = 4;
+    if (newScale < minZoom || newScale > maxZoom) return;
+
+    // Use center of canvas instead of mouse position
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const worldX = (centerX - offSetX) / scale;
+    const worldY = (centerY - offSetY) / scale;
+
+    scale = newScale;
+
+    offSetX = centerX - worldX * scale;
+    offSetY = centerY - worldY * scale;
+
+    updatePanning();     // redraw canvas
+    }
+
     window.addEventListener("resize",function(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -79,6 +122,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
     function updateZoomingDisplay(){
         const zoomPercent = Math.round(scale * 100)
+        setZoomPercentage(zoomPercent)
         console.log(`Zoom: ${zoomPercent}`)
     }
 
@@ -90,6 +134,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         ctx?.fillRect(0,0,window.innerWidth,window.innerHeight)
 
         ctx?.scale(scale, scale); 
+        
 
         // if(isZooming){
         //     isZooming=false
@@ -102,7 +147,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         // }
 
 
-        // updateZoomingDisplay()
+        updateZoomingDisplay()
         //@ts-expect-error daffs
         clearCanvas(existingShape,canvas,ctx)
     }
@@ -280,12 +325,19 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         const mouseX=e.clientX
         const mouseY=e.clientY
 
+        console.log(`x : ${mouseX}, y : ${mouseY}`)
+        
         const zoomFactor = 0.05;
         const zoom=e.deltaY < 0 ? (1 + zoomFactor) : (1 - zoomFactor)
+        const minZoom=0.1
+        const maxZoom=4
+        
         const newScale = scale * zoom;
-
+        
         const worldX = (mouseX - offSetX) / scale;
         const worldY = (mouseY - offSetY) / scale;
+        
+        if( newScale < minZoom  || newScale > maxZoom ) return 
 
         scale = newScale
 

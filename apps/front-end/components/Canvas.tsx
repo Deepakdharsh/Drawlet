@@ -11,11 +11,12 @@ function Canvas({roomId}:{roomId:number,}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
     const {ws,laoding}=UseSocket(roomId)
     const [isPanning,setPanning]=useState(false)
+    const [zoomPercentage,setZoomPercentage]=useState(0)
     useEffect(()=>{
       if( ws == null) return
       
         if(canvasRef.current){;
-          initDraw(canvasRef.current,roomId,ws)
+          initDraw(canvasRef.current,roomId,ws,setZoomPercentage)
         }
       console.log("MOUNTED")
 
@@ -47,6 +48,11 @@ function Canvas({roomId}:{roomId:number,}) {
           <Icon type={"line"} onclick={handleClick} icon={<Minus />}/>
           <Icon type={"pencil"} onclick={handleClick} icon={<Pencil />}/>
           <Icon type={"erase"} onclick={handleClick} icon={<Eraser />}/>
+        </div>
+        <div className=' bg-gray-500 absolute text-amber-50 bottom-1/20 left-1/18'>
+         <button className='dcZoom px-2 hover:text-black hover:bg-amber-100 rounded'>-</button>
+         <button disabled={true} className='px-2'>{zoomPercentage}%</button>
+         <button className='icZoom px-2 hover:text-black hover:bg-amber-100 rounded'>+</button>
         </div>
     </div>
   )
