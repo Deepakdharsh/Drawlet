@@ -1,15 +1,16 @@
 import { ReactNode } from "react"
 
-type shapes="circle"|"rect"|"line"|"pencil"|"erase"|"panning"
+type shapes="circle"|"rect"|"line"|"pencil"|"erase"|"panning"|"undo"|"redo"
 
 interface IconProps {
-    onclick:(type:shapes)=>void,
+    onclick?:(type:shapes)=>void,
     icon:ReactNode
     type:shapes
 }
 
 function Icon({onclick,icon,type}:IconProps) {
   function handleClick(){
+    if(!onclick) return
     onclick(type)
   }
   return (

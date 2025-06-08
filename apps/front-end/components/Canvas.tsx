@@ -2,12 +2,12 @@
 import initDraw from '@/draw'
 import React, { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
-import {Square,Circle,Minus,Pencil,Eraser,Hand} from "lucide-react"
+import {Square,Circle,Minus,Pencil,Eraser,Hand,CornerUpLeft,CornerUpRight} from "lucide-react"
 import UseSocket from '@/hooks/useSocket'
 
-type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase" | "panning"
+type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase" | "panning" | "undo" | "redo"
 
-function Canvas({roomId}:{roomId:number,}) {
+function Canvas({roomId}:{roomId:number}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
     const {ws,laoding}=UseSocket(roomId)
     const [isPanning,setPanning]=useState(false)
@@ -49,10 +49,14 @@ function Canvas({roomId}:{roomId:number,}) {
           <Icon type={"pencil"} onclick={handleClick} icon={<Pencil />}/>
           <Icon type={"erase"} onclick={handleClick} icon={<Eraser />}/>
         </div>
-        <div className=' bg-gray-500 absolute text-amber-50 bottom-1/20 left-1/18'>
-         <button className='dcZoom px-2 hover:text-black hover:bg-amber-100 rounded'>-</button>
+        <div className=' bg-gray-500 absolute text-amber-50 bottom-1/20 left-1/18 rounded'>
+         <button className='dcZoom px-2 py-2 hover:text-black hover:bg-amber-100 rounded'>-</button>
          <button disabled={true} className='px-2'>{zoomPercentage}%</button>
-         <button className='icZoom px-2 hover:text-black hover:bg-amber-100 rounded'>+</button>
+         <button className='icZoom px-2 py-2 hover:text-black hover:bg-amber-100 rounded'>+</button>
+        </div>
+        <div className=' bg-gray-500 absolute text-amber-50 bottom-1/20 left-2/9 rounded '>
+         <button className='icZoom px-3 p-2 hover:text-black hover:bg-amber-100 rounded'><CornerUpLeft /></button>
+         <button className='icZoom px-3 p-2 hover:text-black hover:bg-amber-100 rounded'><CornerUpRight /></button>
         </div>
     </div>
   )
