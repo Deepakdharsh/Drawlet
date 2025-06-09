@@ -60,9 +60,9 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     const strokes:Strokes[]=[]
     const canvasOffsetX = canvas.offsetLeft
 
-    let selectedShapeIndex ;
-    let activeHandles:Handle[]=[];
-    let activeDragHandle;
+    // let selectedShapeIndex ;
+    // let activeHandles:Handle[]=[];
+    // let activeDragHandle;
 
     socket.onmessage=(event)=>{
         const message=JSON.parse(event.data)
@@ -162,81 +162,149 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
     }
 
-    function isPointInsideShape(shape:Shape,x:number,y:number):boolean{
-        switch(shape.type){
-            case "rect":
-                return (
-                    x >= shape.x &&
-                    x <= shape.x + shape.width &&
-                    x >= shape.y &&
-                    x <= shape.y + shape.height
-                )
-            case "circle":
-                const dx=x-shape.rectX
-                const dy=y-shape.rectY
-                return Math.sqrt(dx * dx + dy * dy) <= shape.size
-            default : 
-            return false
-        }
-    }
+//     // function isPointInsideShape(shape:Shape,x:number,y:number):boolean{
+//     //     switch(shape.type){
+//     //         case "rect":
+//     //             return (
+//     //                 x >= shape.x &&
+//     //                 x <= shape.x + shape.width &&
+//     //                 x >= shape.y &&
+//     //                 x <= shape.y + shape.height
+//     //             )
+//     //         case "circle":
+//     //             const dx=x-shape.rectX
+//     //             const dy=y-shape.rectY
+//     //             return Math.sqrt(dx * dx + dy * dy) <= shape.size
+//     //         default : 
+//     //         return false
+//     //     }
+//     // }
 
-    function drawHandles(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number){
-        const size=8
-        const half = size / 2
+//     // function drawHandles(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number){
+//     //     const size=8
+//     //     const half = size / 2
 
-        const position:Handle[]=[
-            { x: x, y: y, position: "top-left" },
-            { x: x + w / 2, y: y, position: "top" },
-            { x: x + w, y: y, position: "top-right" },
-            { x: x + w, y: y + h / 2, position: "right" },
-            { x: x + w, y: y + h, position: "bottom-right" },
-            { x: x + w / 2, y: y + h, position: "bottom" },
-            { x: x, y: y + h, position: "bottom-left" },
-            { x: x, y: y + h / 2, position: "left" },
-            { x: x + w / 2, y: y - 20, position: "rotate" },
-        ]
+//     //     const position:Handle[]=[
+//     //         { x: x, y: y, position: "top-left" },
+//     //         { x: x + w / 2, y: y, position: "top" },
+//     //         { x: x + w, y: y, position: "top-right" },
+//     //         { x: x + w, y: y + h / 2, position: "right" },
+//     //         { x: x + w, y: y + h, position: "bottom-right" },
+//     //         { x: x + w / 2, y: y + h, position: "bottom" },
+//     //         { x: x, y: y + h, position: "bottom-left" },
+//     //         { x: x, y: y + h / 2, position: "left" },
+//     //         { x: x + w / 2, y: y - 20, position: "rotate" },
+//     //     ]
 
-        activeHandles=position
+//     //     activeHandles=position
 
-        ctx.fillStyle="cyan";
-        for(const handle of position ){
-            ctx.beginPath()
-            ctx.arc(handle.x,handle.y,half,0,Math.PI * 2)
-            ctx.fill()
-        }
-    }
+//     //     ctx.fillStyle="cyan";
+//     //     for(const handle of position ){
+//     //         ctx.beginPath()
+//     //         ctx.arc(handle.x,handle.y,half,0,Math.PI * 2)
+//     //         ctx.fill()
+//     //     }
+//     // }
 
-    function drawBoundingBox(ctx:CanvasRenderingContext2D,shape:Shape){
-        let x=0,y=0,w=0,h=0;
+//     // function drawBoundingBox(ctx:CanvasRenderingContext2D,shape:Shape){
+//     //     let x=0,y=0,w=0,h=0;
 
-        if(shape.type=="rect"){
-            x=shape.x
-            y=shape.y
-            w=shape.width
-            h=shape.height
-        }
+//     //     if(shape.type=="rect"){
+//     //         x=shape.x
+//     //         y=shape.y
+//     //         w=shape.width
+//     //         h=shape.height
+//     //     }
 
-        ctx.save();
-        ctx.strokeStyle = "yellow";
-        ctx.lineWidth = 1;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(x, y, w, h);
-        ctx.setLineDash([])
+//     //     ctx.save();
+//     //     ctx.strokeStyle = "yellow";
+//     //     ctx.lineWidth = 1;
+//     //     ctx.setLineDash([5, 5]);
+//     //     ctx.strokeRect(x, y, w, h);
+//     //     ctx.setLineDash([])
 
-        drawHandles(ctx, x, y, w, h);
-        ctx.restore();
-    }
+//     //     drawHandles(ctx, x, y, w, h);
+//     //     ctx.restore();
+//     // }
 
-    function getHandle(x:number,y:number):Handle|null{
-        const handleSize=8
-        for(const handle of activeHandles){
-            const dx=x-handle.x;
-            const dy=y-handle.y
-        if(Math.sqrt(dx*dx*dy*dy) <= handleSize)
-            return handle
-        }
-        return null
-    }
+//     // function getHandle(x:number,y:number):Handle|null{
+//     //     const handleSize=8
+//     //     for(const handle of activeHandles){
+//     //         const dx=x-handle.x;
+//     //         const dy=y-handle.y
+//     //     if(Math.sqrt(dx*dx*dy*dy) <= handleSize)
+//     //         return handle
+//     //     }
+//     //     return null
+//     // }
+
+//     function getBoundingBox(shape: Shape): { x: number; y: number; width: number; height: number } {
+//   switch (shape.type) {
+//     case 'rect':
+//       return { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
+
+//     case 'circle':
+//       return { x: shape.rectX, y: shape.rectY, width: shape.size, height: shape.size };
+
+//     case 'line':
+//       const minX = Math.min(shape.startX, shape.endX);
+//       const minY = Math.min(shape.startY, shape.endY);
+//       const maxX = Math.max(shape.startX, shape.endX);
+//       const maxY = Math.max(shape.startY, shape.endY);
+//       return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+
+//     case 'pencil':
+//       const allX = shape.strokes.map(s => s.x);
+//       const allY = shape.strokes.map(s => s.y);
+//       const minPx = Math.min(...allX);
+//       const minPy = Math.min(...allY);
+//       const maxPx = Math.max(...allX);
+//       const maxPy = Math.max(...allY);
+//       return { x: minPx, y: minPy, width: maxPx - minPx, height: maxPy - minPy };
+
+//     default:
+//       return { x: 0, y: 0, width: 0, height: 0 };
+//   }
+// }
+
+
+//     function drawBoundingBox(ctx: CanvasRenderingContext2D, shape: Shape){
+//     ctx.save();
+//   ctx.strokeStyle = 'blue';
+//   ctx.setLineDash([4, 2]);
+//   ctx.lineWidth = 1;
+
+//   const { x, y, width, height } = getBoundingBox(shape);
+//   ctx.strokeRect(x, y, width, height);
+//   ctx.setLineDash([]);
+
+//   // Draw 8 resize handles
+//   const size = 8;
+//   const half = size / 2;
+
+//   const points = [
+//     [x, y],
+//     [x + width / 2, y],
+//     [x + width, y],
+//     [x + width, y + height / 2],
+//     [x + width, y + height],
+//     [x + width / 2, y + height],
+//     [x, y + height],
+//     [x, y + height / 2],
+//   ];
+
+//   ctx.fillStyle = 'white';
+//   ctx.strokeStyle = 'black';
+
+//   points.forEach(([cx, cy]) => {
+//     ctx.beginPath();
+//     ctx.rect(cx - half, cy - half, size, size);
+//     ctx.fill();
+//     ctx.stroke();
+//   });
+
+//   ctx.restore();
+//   }
 
 
     canvas.addEventListener("mousedown",(e)=>{
@@ -269,24 +337,24 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             })
         }
 
-        selectedShapeIndex=null
+        // selectedShapeIndex=null
 
-        for(let i=existingShape.length-1;i>=0;i--){
-            if(isPointInsideShape(existingShape[i],x,y)){
-                selectedShapeIndex=i
-                break;
-            }
-        }
+        // for(let i=existingShape.length-1;i>=0;i--){
+        //     if(isPointInsideShape(existingShape[i],x,y)){
+        //         selectedShapeIndex=i
+        //         break;
+        //     }
+        // }
 
-        if(selectedShapeIndex !== null){
-            drawBoundingBox(ctx, existingShape[selectedShapeIndex]);
-            const handle=getHandle(x,y)
-            if(handle){
-                activeDragHandle = handle.position
-                return 
-            }
-        }
-        // clearCanvas(existingShape,canvas,ctx,scale,x,y)
+        // if(selectedShapeIndex !== null){
+        //     drawBoundingBox(ctx, existingShape[selectedShapeIndex]);
+        //     const handle=getHandle(x,y)
+        //     if(handle){
+        //         activeDragHandle = handle.position
+        //         return 
+        //     }
+        // }
+        // // clearCanvas(existingShape,canvas,ctx,scale,x,y)
     })
     
     canvas.addEventListener("mouseup",(e)=>{
@@ -437,62 +505,62 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                 updatePanning()
             }
             
-            if (activeDragHandle && selectedShapeIndex !== null) {
-                 const shape = existingShape[selectedShapeIndex];
-                if (shape.type === "rect") {
-                let newX = shape.x;
-                let newY = shape.y;
-                let newWidth = shape.width;
-                let newHeight = shape.height;
+            // if (activeDragHandle && selectedShapeIndex !== null) {
+            //      const shape = existingShape[selectedShapeIndex];
+            //     if (shape.type === "rect") {
+            //     let newX = shape.x;
+            //     let newY = shape.y;
+            //     let newWidth = shape.width;
+            //     let newHeight = shape.height;
 
-                    switch (activeDragHandle) {
-                        case "top-left":
-                        newWidth += (newX - x);
-                        newHeight += (newY - y);
-                        newX = x;
-                        newY = y;
-                        break;
-                        case "top":
-                        newHeight += (newY - y);
-                        newY = y;
-                        break;
-                        case "top-right":
-                        newWidth = x - newX;
-                        newHeight += (newY - y);
-                        newY = y;
-                        break;
-                        case "right":
-                        newWidth = x - newX;
-                        break;
-                        case "bottom-right":
-                        newWidth = x - newX;
-                        newHeight = y - newY;
-                        break;
-                        case "bottom":
-                        newHeight = y - newY;
-                        break;
-                        case "bottom-left":
-                        newWidth += (newX - x);
-                        newHeight = y - newY;
-                        newX = x;
-                        break;
-                        case "left":
-                        newWidth += (newX - x);
-                        newX = x;
-                        break;
-                    }
+            //         switch (activeDragHandle) {
+            //             case "top-left":
+            //             newWidth += (newX - x);
+            //             newHeight += (newY - y);
+            //             newX = x;
+            //             newY = y;
+            //             break;
+            //             case "top":
+            //             newHeight += (newY - y);
+            //             newY = y;
+            //             break;
+            //             case "top-right":
+            //             newWidth = x - newX;
+            //             newHeight += (newY - y);
+            //             newY = y;
+            //             break;
+            //             case "right":
+            //             newWidth = x - newX;
+            //             break;
+            //             case "bottom-right":
+            //             newWidth = x - newX;
+            //             newHeight = y - newY;
+            //             break;
+            //             case "bottom":
+            //             newHeight = y - newY;
+            //             break;
+            //             case "bottom-left":
+            //             newWidth += (newX - x);
+            //             newHeight = y - newY;
+            //             newX = x;
+            //             break;
+            //             case "left":
+            //             newWidth += (newX - x);
+            //             newX = x;
+            //             break;
+            //         }
 
-                    newWidth = Math.max(newWidth, 5);
-                    newHeight = Math.max(newHeight, 5);
+            //         newWidth = Math.max(newWidth, 5);
+            //         newHeight = Math.max(newHeight, 5);
 
-                    shape.x = newX;
-                    shape.y = newY;
-                    shape.width = newWidth;
-                    shape.height = newHeight;
-                    clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
-                    drawBoundingBox(ctx, shape);
-                }
-            }
+            //         shape.x = newX;
+            //         shape.y = newY;
+            //         shape.width = newWidth;
+            //         shape.height = newHeight;
+            //         clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+            //         drawBoundingBox(ctx, shape);
+            //     }
+            // }
                         
         }
 
