@@ -57,12 +57,14 @@ const chat=async(req:Request,res:Response)=>{
         })
     
         if(!chats) return res.status(409).json({message:"something went wrong"})
-    
+            
+        console.log(chats)
         
         res.json({
             message:"room created",
             chats
         })
+
     } catch (error) {
         console.log(error)
         res.status(500).json({

@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 
-type shapes="circle"|"rect"|"line"|"pencil"|"erase"|"panning"|"undo"|"redo"
+type shapes="circle"|"rect"|"line"|"pencil"|"erase"|"panning"|"undo"|"redo"|"select"
 
 interface IconProps {
     onclick?:(type:shapes)=>void,
@@ -14,7 +14,7 @@ function Icon({onclick,icon,type}:IconProps) {
     onclick(type)
   }
   return (
-    <button  className={`m-2 p-2 bg-gray-500 hover:text-black hover:bg-amber-100`} onClick={handleClick}>
+    <button  className={`m-1 p-2 bg-gray-500 hover:text-black hover:bg-amber-100`} onClick={handleClick}>
       {icon}
     </button>
   )

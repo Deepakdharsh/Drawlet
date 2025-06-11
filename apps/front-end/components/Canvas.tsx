@@ -2,10 +2,10 @@
 import initDraw from '@/draw'
 import React, { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
-import {Square,Circle,Minus,Pencil,Eraser,Hand,CornerUpLeft,CornerUpRight} from "lucide-react"
+import {Square,Circle,Minus,Pencil,Eraser,Hand,CornerUpLeft,CornerUpRight,MousePointer} from "lucide-react"
 import UseSocket from '@/hooks/useSocket'
 
-type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase" | "panning" | "undo" | "redo"
+type ShapeType = "rect" | "circle" | "line" | "pencil" | "erase" | "panning" | "undo" | "redo" | "select"
 
 function Canvas({roomId}:{roomId:number}) {
     const canvasRef=useRef<HTMLCanvasElement>(null)
@@ -42,6 +42,7 @@ function Canvas({roomId}:{roomId:number}) {
     <div className={`${isPanning ? "cursor-grab" : "" }`}>
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="block"></canvas>
         <div className='text-amber-50 absolute top-10 left-1/2 -translate-x-1/2 '>
+          <Icon type={"select"} onclick={handleClick} icon={<MousePointer />}/>
           <Icon type={"panning"} onclick={handleClick} icon={<Hand/>}/>
           <Icon type={"rect"} onclick={handleClick} icon={<Square/>}/>
           <Icon type={"circle"} onclick={handleClick}icon={<Circle/>}/>
