@@ -53,6 +53,36 @@ wss.on("connection", (ws: WebSocket, request) => {
       if (!user) return;
       user.rooms = user?.rooms.filter((x) => x != parsedData.roomId);
     }
+/* 
+    const {chatId,message}=req.body
+    const roomId=Number(req.params.roomId) */
+
+    if (parsedData.type === "updateChat") {
+      console.log("entered updateChat")
+      console.log(parsedData)
+      try {
+           await prismaClient.chat.update({
+            where:{
+                roomId:parsedData.roomId,
+                id:parsedData.chatId
+            },
+            data:{
+                message:parsedData.message
+            }
+      })
+      users.forEach((cur) => {
+        if (cur.rooms.includes(parsedData.roomId)) {
+            cur.ws.send(JSON.stringify({
+              type:"updatedChat",
+              message:parsedData.message,
+              roomId:parsedData.roomId
+        }))
+        }
+      });
+      } catch (error) {
+        console.log("something went wrong: "+error)
+      }    
+    }
 
     if (parsedData.type === "chat") {
       console.log("entered chat")

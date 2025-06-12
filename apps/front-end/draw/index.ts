@@ -1,4 +1,5 @@
 import { api } from "@/api/axios"
+import { json } from "stream/consumers"
 
 type Shape={
     type:"rect",
@@ -66,7 +67,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
     const ctx=canvas.getContext("2d") 
     
-    const existingShape:Shape[] = await getExistingShapes(roomId)
+    let existingShape:Shape[] = await getExistingShapes(roomId)
 
     if(!ctx){
         return 
@@ -83,10 +84,16 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
 
 
-    socket.onmessage=(event)=>{
+    socket.onmessage=async(event)=>{
         const message=JSON.parse(event.data)
         if(message.type=="chat"){
             existingShape.push(JSON.parse(message.message))
+            console.log(message.message)
+            clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+        }
+
+        if(message.type=="updatedChat"){
+            existingShape = await getExistingShapes(roomId)
             clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
         }
     }
@@ -216,62 +223,129 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
       return [];
     }
 
+    function isPointInHandle(x:number,y:number,handle:Handle,radius=8){
+        return Math.hypot(x-handle.x,y-handle.y) <= radius
+    }
 
-    canvas.addEventListener("mousedown",(e)=>{
-        clicked=true
 
-        //@ts-expect-error fsfs
-        if(window.shapeType=="select"){
-            const {x,y}=toWorld(e.clientX,e.clientY)
-            const index = getShapeAtPoint(x, y);
-            console.log(index)
-            if (index !== null) {
-                transState.selectedShapeIndex = index;
-                transState.originalShape = JSON.parse(JSON.stringify(existingShape[index])); // clone
-                transState.startX = x;
-                transState.startY = y;
+    // canvas.addEventListener("mousedown",(e)=>{
+    //     clicked=true
+    //     const {x,y} = toWorld(e.clientX,e.clientY)
+
+    //     //@ts-expect-error fsfs
+    //     if(window.shapeType=="select"){
+    //         const index = getShapeAtPoint(x, y);
+
+    //          // Check if handle was clicked
+    //         for (const handle of transState.activeHandles) {
+    //             if (isPointInHandle(x, y, handle)) {
+    //                 transState.activeDragHandle = handle;
+    //                 transState.isTransforming = true;
+    //                 return;
+    //             }
+    //         }
+
+    //         // No handle clicked, check for shape selection
+    //         if (index !== null) {
+    //             transState.selectedShapeIndex = index;
+    //             transState.originalShape = JSON.parse(JSON.stringify(existingShape[index])); // clone
+    //             transState.startX = x;
+    //             transState.startY = y;
+    //             transState.isTransforming = true;
+
+    //             transState.activeHandles = generateHandles(existingShape[index]);
+    //             if(transState.activeHandles){
+    //                 clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+    //             }
+    //         }
+    //         return 
+    //     }
+
+    //     //@ts-expect-error fsfs
+    //     if(window.shapeType=="panning"){
+    //         startX = e.clientX;
+    //         startY = e.clientY;
+    //         return;
+    //     }
+
+    //     startX=x
+    //     startY=y
+
+    //     //@ts-expect-error dfad
+    //     if(window.shapeType=="pencil"){
+    //         strokes.length=0
+    //         ctx.strokeStyle="rgba(255,255,255)"
+    //         ctx.lineWidth = 1.5;
+    //         ctx.lineCap = "round";
+    //         ctx.lineJoin = "round";
+    //         ctx.beginPath()
+    //         ctx.moveTo(startX,startY)
+    //         strokes.push({
+    //             currentX:startX,
+    //             currentY:startY
+    //         })
+    //     }
+
+    // })
+
+    canvas.addEventListener("mousedown", (e) => {
+    clicked = true;
+
+    const { x, y } = toWorld(e.clientX, e.clientY);
+
+    //@ts-expect-error
+    const shapeType = window.shapeType;
+
+    if (shapeType === "select") {
+        // Check if handle was clicked
+        for (const handle of transState.activeHandles) {
+            if (isPointInHandle(x, y, handle)) {
+                transState.activeDragHandle = handle;
                 transState.isTransforming = true;
-
-                transState.activeHandles = generateHandles(existingShape[index]);
-                if(transState.activeHandles){
-                    clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
-                }
+                return;
             }
         }
 
-        //@ts-expect-error fsfs
-        if(window.shapeType=="panning"){
-            startX = e.clientX;
-            startY = e.clientY;
-            return;
+        // No handle clicked, check for shape selection
+        const index = getShapeAtPoint(x, y);
+        if (index !== null) {
+            transState.selectedShapeIndex = index;
+            transState.originalShape = JSON.parse(JSON.stringify(existingShape[index])); // clone
+            transState.startX = x;
+            transState.startY = y;
+            transState.isTransforming = true;
+            transState.activeHandles = generateHandles(existingShape[index]);
+            clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
         }
+        return;
+    }
 
-        const {x,y} = toWorld(e.clientX,e.clientY)
-        startX=x
-        startY=y
+    if (shapeType === "panning") {
+        startX = e.clientX;
+        startY = e.clientY;
+        return;
+    }
 
-        //@ts-expect-error dfad
-        if(window.shapeType=="pencil"){
-            strokes.length=0
-            ctx.strokeStyle="rgba(255,255,255)"
-            ctx.lineWidth = 1.5;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
-            ctx.beginPath()
-            ctx.moveTo(startX,startY)
-            console.log(startX,startY)
-            strokes.push({
-                currentX:startX,
-                currentY:startY
-            })
-        }
+    startX = x;
+    startY = y;
 
-    })
+    if (shapeType === "pencil") {
+        strokes.length = 0;
+        ctx.strokeStyle = "rgba(255,255,255)";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        strokes.push({ currentX: startX, currentY: startY });
+    }
+});
  
     canvas.addEventListener("mousemove",(e)=>{
         if(clicked){
 
             const {x,y} = toWorld(e.clientX,e.clientY)
+
             const rect = canvas.getBoundingClientRect();
             const EraseX = x - rect.left;
             const EraseY = y - rect.top;
@@ -286,57 +360,239 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
             ctx.strokeStyle="rgba(255,255,255)"
 
-            //@ts-expect-error dfa
-            if(window.shapeType=="rect"){
-                clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
-                ctx.strokeRect(startX,startY,width,height)
-                //@ts-expect-error fads
-            }else if(window.shapeType=="circle"){
-                clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
-                ctx.beginPath();
-                ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
-                ctx.stroke()
-                //@ts-expect-error dfa
-            }else if(window.shapeType=="line"){
-                clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
-                ctx.beginPath()
-                ctx.moveTo(startX,startY)
-                ctx.lineTo(x,y)
-                ctx.stroke()
-                //@ts-expect-error dfa
-            }else if(window.shapeType=="pencil"){
-                strokes.push({
-                    currentX:x-canvasOffsetX,
-                    currentY:y
-                })
+            
 
-                ctx.lineTo(x-canvasOffsetX,y)
-                ctx.stroke()
-                //@ts-expect-error dfa
-            }else if(window.shapeType=="erase"){
-                console.log("using eraser")
-               const index = eraseAt(EraseX,EraseY,existingShape)
-               console.log(index)
-                if(index!==-1){
-                    existingShape.splice(index,1)
-                    clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+            //@ts-expect-error dofnasd
+    if (window.shapeType === "select" && transState.isTransforming && transState.selectedShapeIndex !== null) {
+        const dx = x - transState.startX;
+        const dy = y - transState.startY;
+        const shape = existingShape[transState.selectedShapeIndex];
+        const orig = transState.originalShape;
+
+        if (transState.activeDragHandle) {
+        const handle = transState.activeDragHandle;
+
+        if (shape.type === "rect" && orig.type === "rect") {
+            let newX = orig.x;
+            let newY = orig.y;
+            let newWidth = orig.width;
+            let newHeight = orig.height;
+
+            const { position } = handle;
+
+            if (position.includes("left")) {
+            const delta = x - orig.x;
+            newX = orig.x + delta;
+            newWidth = orig.width - delta;
+            }
+
+            if (position.includes("right")) {
+            newWidth = x - orig.x;
+            }
+
+            if (position.includes("top")) {
+            const delta = y - orig.y;
+            newY = orig.y + delta;
+            newHeight = orig.height - delta;
+            }
+
+            if (position.includes("bottom")) {
+            newHeight = y - orig.y;
+            }
+
+            // Avoid negative width/height
+            newWidth = Math.max(10, newWidth);
+            newHeight = Math.max(10, newHeight);
+
+            shape.x = newX;
+            shape.y = newY;
+            shape.width = newWidth;
+            shape.height = newHeight;
+        }
+        } else {
+                    // No handle, just move shape
+                if (shape.type === "rect" && orig.type === "rect") {
+                    shape.x = orig.x + dx;
+                    shape.y = orig.y + dy;
+                } else if (shape.type === "circle" && orig.type === "circle") {
+                    shape.rectX = orig.rectX + dx;
+                    shape.rectY = orig.rectY + dy;
                 }
-                //@ts-expect-error dfa
-            }else if(window.shapeType=="panning"){
-                const dx=e.clientX-startX;
-                const dy=e.clientY-startY;
-                offSetX+=dx
-                offSetY+=dy
-                startX=e.clientX
-                startY=e.clientY
-                updatePanning()
-            }              
+            }
+
+            transState.activeHandles = generateHandles(shape);
+            clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+            return;
         }
 
-    })
+
+
+        //@ts-expect-error dfa
+        if(window.shapeType=="rect"){
+            clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+            ctx.strokeRect(startX,startY,width,height)
+            //@ts-expect-error fads
+        }else if(window.shapeType=="circle"){
+            clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+            ctx.beginPath();
+            ctx.ellipse( rectX + size / 2, rectY + size / 2, size / 2, size / 2 , 0 ,0 , 2 * Math.PI);
+            ctx.stroke()
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="line"){
+            clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+            ctx.beginPath()
+            ctx.moveTo(startX,startY)
+            ctx.lineTo(x,y)
+            ctx.stroke()
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="pencil"){
+            strokes.push({
+                currentX:x-canvasOffsetX,
+                currentY:y
+            })
+
+            ctx.lineTo(x-canvasOffsetX,y)
+            ctx.stroke()
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="erase"){
+            console.log("using eraser")
+            const index = eraseAt(EraseX,EraseY,existingShape)
+            console.log(index)
+            if(index!==-1){
+                existingShape.splice(index,1)
+                clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+            }
+            //@ts-expect-error dfa
+        }else if(window.shapeType=="panning"){
+            const dx=e.clientX-startX;
+            const dy=e.clientY-startY;
+            offSetX+=dx
+            offSetY+=dy
+            startX=e.clientX
+            startY=e.clientY
+            updatePanning()
+        }              
+    }
+
+})
+
+//     canvas.addEventListener("mousemove", (e) => {
+//     if (!clicked) return;
+
+//     const { x, y } = toWorld(e.clientX, e.clientY);
+
+//     //@ts-expect-error esfd
+//     const shapeType = window.shapeType;
+
+//     const width = x - startX;
+//     const height = y - startY;
+//     const size = Math.min(Math.abs(width), Math.abs(height));
+//     const rectX = width < 0 ? startX - size : startX;
+//     const rectY = height < 0 ? startY - size : startY;
+
+//     if (shapeType === "select" && transState.isTransforming && transState.selectedShapeIndex !== null) {
+//         const dx = x - transState.startX;
+//         const dy = y - transState.startY;
+//         const shape = existingShape[transState.selectedShapeIndex];
+//         const orig = transState.originalShape;
+
+//     if (transState.activeDragHandle) {
+//     const handle = transState.activeDragHandle;
+
+//     if (shape.type === "rect" && orig.type === "rect") {
+//         let newX = orig.x;
+//         let newY = orig.y;
+//         let newWidth = orig.width;
+//         let newHeight = orig.height;
+
+//         const { position } = handle;
+
+//         if (position.includes("left")) {
+//         const delta = x - orig.x;
+//         newX = orig.x + delta;
+//         newWidth = orig.width - delta;
+//         }
+
+//         if (position.includes("right")) {
+//         newWidth = x - orig.x;
+//         }
+
+//         if (position.includes("top")) {
+//         const delta = y - orig.y;
+//         newY = orig.y + delta;
+//         newHeight = orig.height - delta;
+//         }
+
+//         if (position.includes("bottom")) {
+//         newHeight = y - orig.y;
+//         }
+
+//         // Avoid negative width/height
+//         newWidth = Math.max(10, newWidth);
+//         newHeight = Math.max(10, newHeight);
+
+//         shape.x = newX;
+//         shape.y = newY;
+//         shape.width = newWidth;
+//         shape.height = newHeight;
+//      }
+//     } else {
+//                 // No handle, just move shape
+//             if (shape.type === "rect" && orig.type === "rect") {
+//                 shape.x = orig.x + dx;
+//                 shape.y = orig.y + dy;
+//             } else if (shape.type === "circle" && orig.type === "circle") {
+//                 shape.rectX = orig.rectX + dx;
+//                 shape.rectY = orig.rectY + dy;
+//             }
+//         }
+
+//         transState.activeHandles = generateHandles(shape);
+//         clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+//         return;
+//     }
+
+//     if (shapeType === "rect") {
+//         clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+//         ctx.strokeRect(startX, startY, width, height);
+//     } else if (shapeType === "circle") {
+//         clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+//         ctx.beginPath();
+//         ctx.ellipse(rectX + size / 2, rectY + size / 2, size / 2, size / 2, 0, 0, Math.PI * 2);
+//         ctx.stroke();
+//     } else if (shapeType === "line") {
+//         clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+//         ctx.beginPath();
+//         ctx.moveTo(startX, startY);
+//         ctx.lineTo(x, y);
+//         ctx.stroke();
+//     } else if (shapeType === "pencil") {
+//         strokes.push({ currentX: x - canvasOffsetX, currentY: y });
+//         ctx.lineTo(x - canvasOffsetX, y);
+//         ctx.stroke();
+//     } else if (shapeType === "erase") {
+//         const rect = canvas.getBoundingClientRect();
+//         const EraseX = x - rect.left;
+//         const EraseY = y - rect.top;
+//         const index = eraseAt(EraseX, EraseY, existingShape);
+//         if (index !== -1) {
+//             existingShape.splice(index, 1);
+//             clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+//         }
+//     } else if (shapeType === "panning") {
+//         const dx = e.clientX - startX;
+//         const dy = e.clientY - startY;
+//         offSetX += dx;
+//         offSetY += dy;
+//         startX = e.clientX;
+//         startY = e.clientY;
+//         updatePanning();
+//     }
+// });
 
     canvas.addEventListener("mouseup",(e)=>{
         clicked=false
+
         const {x,y} = toWorld(e.clientX,e.clientY)
         const width=x-startX;
         const height=y-startY;
@@ -346,6 +602,27 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         const rectX = width < 0 ? startX - size : startX;
         const rectY = height < 0 ? startY - size : startY;
 
+        //@ts-expect-error fgnan
+        if ( window.shapeType === "select" && transState.isTransforming && transState.selectedShapeIndex !== null){
+            const updatedShape = existingShape[transState.selectedShapeIndex];
+            console.log(updatedShape)
+            console.log("sented update")
+            socket.send(JSON.stringify({
+                type:"updateChat",
+                message:JSON.stringify({
+                    type:"rect",
+                    x:updatedShape.x,
+                    y:updatedShape.y,
+                    height:updatedShape.height,
+                    width:updatedShape.width
+                }),
+                roomId,
+                chatId:updatedShape.id
+            }))
+            transState.isTransforming = false;
+            transState.activeDragHandle = null;
+        }
+  
 
         //@ts-expect-error dfa
         if(window.shapeType=="rect"){
@@ -381,8 +658,8 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
                     type:"line",
                     startX,
                     startY,
-                    endX:e.clientX,
-                    endY:e.clientY
+                    endX:x,
+                    endY:y
                 }),
                 roomId
             }))
@@ -432,8 +709,6 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         updatePanning()
     })
 
-
-    
 }
 
 function eraseAt(x:number,y:number,shapes:Shape[]){

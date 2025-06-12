@@ -73,6 +73,43 @@ const chat=async(req:Request,res:Response)=>{
     }
 }
 
+// const updateChat=async(req:Request,res:Response)=>{
+//     try {
+//         //@ts-ignore
+//         const userId=req.userId
+//         //@ts-ignore
+//         const {chatId,message}=req.body
+//         const roomId=Number(req.params.roomId)
+    
+//         const chats=await prismaClient.chat.update({
+//             where:{
+//                 roomId:roomId,
+//                 id:chatId
+
+//             },
+//             data:{
+//                 message
+//             }
+//             // take:50
+//         })
+    
+//         if(!chats) return res.status(409).json({message:"something went wrong"})
+            
+//         console.log(chats)
+        
+//         res.json({
+//             message:"room created",
+//             chats
+//         })
+
+//     } catch (error) {
+//         console.log(error)
+//         res.status(500).json({
+//             message:"something went wrong"
+//         })
+//     }
+// }
+
 const getRoomId=async(req:Request,res:Response)=>{
     try {
         //@ts-ignore
