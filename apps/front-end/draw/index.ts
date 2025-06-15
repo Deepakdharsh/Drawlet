@@ -582,7 +582,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         }
     } else if (shapeType === "panning") {
         const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
+        const dy = e.clientY - startY; 
         offSetX += dx;
         offSetY += dy;
         startX = e.clientX;
