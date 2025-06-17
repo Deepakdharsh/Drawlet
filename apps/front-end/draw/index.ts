@@ -588,7 +588,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         startX = e.clientX;
         startY = e.clientY;
         updatePanning();
-    }    
+    }     
 });
 
     canvas.addEventListener("mouseup",(e)=>{
