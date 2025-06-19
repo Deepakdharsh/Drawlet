@@ -583,7 +583,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         shape.width = newWidth;
         shape.height = newHeight;
      }
-     clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+    //  clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
     } else {
             orig = transState.originalShape;
                 // No handle, just move shape
@@ -673,17 +673,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             }))
             transState.isTransforming = false;
             transState.activeDragHandle = null;
-            // transState.originalShape = null;
-            
-            // transState.activeDragHandle = null;
-
-            // transState.isTransforming = false;
-            // transState.startX = 0;
-            // transState.startY = 0;
             // transState.activeHandles = [];
-            // clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
-            // transState.activeHandles = [];
-
             return 
         }
   
