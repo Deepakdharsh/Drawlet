@@ -1,28 +1,31 @@
 import { api } from "@/api/axios"
-import { json } from "stream/consumers"
 
 type Shape={
     type:"rect",
     x:number,
     y:number,
     width:number,
-    height:number
+    height:number,
+    id:number
 }| {
     type:"circle",
     rectX:number,
     rectY:number,
-    size:number
+    size:number,
+    id:number
 }| {
     type:"line",
     startX:number,
     startY:number,
     endX:number,
-    endY:number
+    endY:number,
+    id:number
 } | {
     type:"pencil",
     strokes:Strokes[]
     startX:number,
-    startY:number
+    startY:number,
+    id:number
 }
 
 type Strokes={
@@ -68,6 +71,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     const ctx=canvas.getContext("2d") 
     
     let existingShape:Shape[] = await getExistingShapes(roomId)
+    console.log(existingShape)
 
     if(!ctx){
         return 
@@ -92,10 +96,10 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
         }
 
-        if(message.type=="updatedChat"){
-            existingShape = await getExistingShapes(roomId)
-            clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
-        }
+        // if(message.type=="updatedChat"){
+        //     existingShape = await getExistingShapes(roomId)
+        //     clearCanvas(existingShape,canvas,ctx,scale, offSetX, offSetY)
+        // }
     }
     
     
@@ -297,6 +301,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
     const shapeType = window.shapeType;
 
     if (shapeType === "select") {
+
         // Check if handle was clicked
         for (const handle of transState.activeHandles) {
             if (isPointInHandle(x, y, handle)) {
@@ -476,6 +481,7 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
 
 // })
 
+
     canvas.addEventListener("mousemove", (e) => {
     if (!clicked) return;
 
@@ -495,37 +501,77 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         const dy = y - transState.startY;
         const shape = existingShape[transState.selectedShapeIndex];
         if(!transState.originalShape) return
-        const orig:Shape = transState.originalShape;
+        let orig:Shape = shape;
+        // const orig:Shape = transState.originalShape;
 
     if (transState.activeDragHandle) {
-    const handle = transState.activeDragHandle;
-
-    if (shape.type === "rect" && orig.type === "rect") {
+    if (transState.activeDragHandle && shape.type === "rect" && orig.type === "rect") {
         let newX = orig.x;
         let newY = orig.y;
         let newWidth = orig.width;
         let newHeight = orig.height;
 
-        const { position } = handle;
+        //@ts-expect-error fasda
+        const { position } =  transState.activeDragHandle;
 
-        if (position.includes("left")) {
+                // LEFT
+        if (position === "left") {
         const delta = x - orig.x;
-        newX = orig.x + delta;
+        newX = x
         newWidth = orig.width - delta;
         }
 
-        if (position.includes("right")) {
+        // RIGHT
+        if (position === "right") {
         newWidth = x - orig.x;
         }
 
-        if (position.includes("top")) {
+        // TOP
+        if (position === "top") {
         const delta = y - orig.y;
-        newY = orig.y + delta;
+        newY = y
         newHeight = orig.height - delta;
         }
 
-        if (position.includes("bottom")) {
+        // BOTTOM
+        if (position === "bottom") {
         newHeight = y - orig.y;
+        }
+
+        // TOP-LEFT
+        if (position === "top-left") {
+        const dx = x - orig.x;
+        const dy = y - orig.y;
+        newX = orig.x + dx;
+        newY = orig.y + dy;
+        newWidth = orig.width - dx;
+        newHeight = orig.height - dy;
+        }
+
+        // TOP-RIGHT
+        if (position === "top-right") {
+        const dx = x - (orig.x + orig.width);
+        const dy = y - orig.y;
+        newY = orig.y + dy;
+        newWidth = orig.width + dx;
+        newHeight = orig.height - dy;
+        }
+
+        // BOTTOM-LEFT
+        if (position === "bottom-left") {
+        const dx = x - orig.x;
+        const dy = y - (orig.y + orig.height);
+        newX = orig.x + dx;
+        newWidth = orig.width - dx;
+        newHeight = orig.height + dy;
+        }
+
+        // BOTTOM-RIGHT
+        if (position === "bottom-right") {
+        const dx = x - (orig.x + orig.width);
+        const dy = y - (orig.y + orig.height);
+        newWidth = orig.width + dx;
+        newHeight = orig.height + dy;
         }
 
         // Avoid negative width/height
@@ -537,7 +583,9 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         shape.width = newWidth;
         shape.height = newHeight;
      }
+     clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
     } else {
+            orig = transState.originalShape;
                 // No handle, just move shape
             if (shape.type === "rect" && orig.type === "rect") {
                 shape.x = orig.x + dx;
@@ -606,7 +654,10 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
         //@ts-expect-error fgnan
         if ( window.shapeType === "select" && transState.isTransforming && transState.selectedShapeIndex !== null){
             const updatedShape = existingShape[transState.selectedShapeIndex];
+
             console.log(updatedShape)
+            existingShape[transState.selectedShapeIndex]=updatedShape
+            
             console.log("sented update")
             socket.send(JSON.stringify({
                 type:"updateChat",
@@ -622,6 +673,18 @@ export default async function initDraw(canvas:HTMLCanvasElement,roomId:number,so
             }))
             transState.isTransforming = false;
             transState.activeDragHandle = null;
+            // transState.originalShape = null;
+            
+            // transState.activeDragHandle = null;
+
+            // transState.isTransforming = false;
+            // transState.startX = 0;
+            // transState.startY = 0;
+            // transState.activeHandles = [];
+            // clearCanvas(existingShape, canvas, ctx, scale, offSetX, offSetY);
+            // transState.activeHandles = [];
+
+            return 
         }
   
 

@@ -7,7 +7,7 @@ export default function UseSocket(roomId:number){
 
     useEffect(()=>{
         // const token=localStorage.getItem("token")
-        const websocket=new WebSocket(`ws://localhost:8080?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwYjdkZjZhLTQ2MjgtNDdlZi04Y2E2LWU4NWM0ZjU4NzI0NSIsImlhdCI6MTc0OTcyNDQ3NSwiZXhwIjoxNzUwMzI5Mjc1fQ.WPc-SYYzizfNt-88ziOFct9mne2Z1kTNyRJH64gidLs`)
+        const websocket=new WebSocket(`ws://localhost:8080?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwYjdkZjZhLTQ2MjgtNDdlZi04Y2E2LWU4NWM0ZjU4NzI0NSIsImlhdCI6MTc1MDM0NDIxMCwiZXhwIjoxNzUwOTQ5MDEwfQ.l-qFUQuYIYAjhyzTYC5z7TjFx4CjUZtkaxJTFFs_Rn0`)
 
         websocket.onopen=()=>{
             setLoading(false)

@@ -59,7 +59,7 @@ export const auth=async(req:Request,res:Response,next:NextFunction)=>{
     // }
     try {
         // const token=req.headers.token
-        const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwYjdkZjZhLTQ2MjgtNDdlZi04Y2E2LWU4NWM0ZjU4NzI0NSIsImlhdCI6MTc0OTcyNDQ3NSwiZXhwIjoxNzUwMzI5Mjc1fQ.WPc-SYYzizfNt-88ziOFct9mne2Z1kTNyRJH64gidLs"
+        const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwYjdkZjZhLTQ2MjgtNDdlZi04Y2E2LWU4NWM0ZjU4NzI0NSIsImlhdCI6MTc1MDM0NDIxMCwiZXhwIjoxNzUwOTQ5MDEwfQ.l-qFUQuYIYAjhyzTYC5z7TjFx4CjUZtkaxJTFFs_Rn0"
         if(token){
             //@ts-ignore
             const decoded=jwt.verify(token,JWT_SECRET)
