@@ -6,7 +6,7 @@ type Shape={
     y:number,
     width:number,
     height:number,
-    id:number
+    id:number, 
 }| {
     type:"circle",
     rectX:number,
