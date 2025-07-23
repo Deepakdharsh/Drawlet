@@ -13,6 +13,7 @@ function Canvas({roomId}:{roomId:number}) {
     const [isPanning,setPanning]=useState(false)
     const [zoomPercentage,setZoomPercentage]=useState(0)
     useEffect(()=>{
+      console.log("entered here")
       if( ws == null) return
       
         if(canvasRef.current){;
